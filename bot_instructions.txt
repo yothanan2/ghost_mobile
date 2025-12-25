@@ -81,3 +81,25 @@ Ensure the `broadcast_vitals` method (in `dashboard.py`) includes these keys (Th
 - `risk_percent` (Float)
 
 *End of Instructions*
+
+## 4. [NEW] v2.06 Holiday Logic Sync
+**Goal**: Ensure Mobile App detects "PAUSE" state during holidays.
+
+**Action**: Verify `broadcast_vitals` in `dashboard.py`.
+Ensure that `mode_name` accurately reflects the "PAUSE" state if the Scheduler or User sets it.
+
+```python
+    # In broadcast_vitals()
+    # Ensure this logic exists or similar:
+    mode_name = self.brain.config.get("MODE_NAME", "MANUAL")
+    
+    # If Scheduler says PAUSE, override:
+    if self.scheduler.is_holiday(): # hypothetical check
+         mode_name = "PAUSE"
+    
+    vitals = {
+        "mode_name": mode_name,
+        # ... other keys
+    }
+```
+**CRITICAL**: The App looks for the string `"PAUSE"` (case-sensitive) to show the "Resume" UI.

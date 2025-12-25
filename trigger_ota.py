@@ -20,17 +20,17 @@ def trigger_update():
 
     # 2. Define Update Payload
     version_data = {
-        "code": 25,                 
-        "name": "2.05",             
+        "code": 26,                 
+        "name": "2.06",             
         "mandatory": False,          
-        "changelog": "🚀 UPDATE v2.05: Dashboard Evolved.\n- Engine Controls moved to Home Screen.\n- Settings Menu streamlined.\n- UI Enhancements.",
+        "changelog": "👻 UPDATE v2.06: Ghost RC\n- Renamed to 'Ghost RC'.\n- Added Holiday/Pause Support.\n- Visual Tweaks.",
         "changelog_map": {
-            "en": "🚀 UPDATE v2.05: Dashboard Evolved.\n- Engine Controls moved to Home Screen.\n- Settings Menu streamlined.\n- UI Enhancements.",
-            "th": "🚀 อัปเดต v2.05: ปรับปรุงล่าสุด\n- ย้ายปุ่มควบคุมไปหน้าหลัก\n- จัดระเบียบเมนูตั้งค่า",
-            "ru": "🚀 ОБНОВЛЕНИЕ v2.05: Эволюция Панели\n- Управление движком на главном экране",
-            "es": "🚀 ACTUALIZACIÓN v2.05: Panel Evolucionado\n- Controles del motor en la pantalla de inicio"
+            "en": "👻 UPDATE v2.06: Ghost RC\n- Renamed to 'Ghost RC'.\n- Added Holiday/Pause Support.\n- Visual Tweaks.",
+            "th": "👻 อัปเดต v2.06: Ghost RC\n- เปลี่ยนชื่อแอปเป็น Ghost\n- รองรับโหมดวันหยุด",
+            "ru": "👻 ОБНОВЛЕНИЕ v2.06: Ghost RC\n- Новое имя: Ghost\n- Поддержка режима паузы",
+            "es": "👻 ACTUALIZACIÓN v2.06: Ghost RC\n- Nuevo nombre: Ghost\n- Soporte para modo pausa"
         },
-        "url": "https://github.com/yothanan2/ghost_mobile/raw/master/Ghost_v2.05_Release.apk"
+        "url": "https://github.com/yothanan2/ghost_mobile/raw/master/Ghost_v2.06_Release.apk"
     }
 
     # 3. Push to 'system/version' (Correct Path per MainActivity.kt)

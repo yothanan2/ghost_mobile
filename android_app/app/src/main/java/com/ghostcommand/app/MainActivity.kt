@@ -143,7 +143,7 @@ object GhostLingo {
         "TODAYS_TRADES" to "TODAY'S TRADES",
         "SESSION_LEDGER" to "SESSION LEDGER",
         "NO_TRADES" to "NO TRADES YET",
-        "LOGIN_TITLE" to "GHOST PROTOCOL",
+        "LOGIN_TITLE" to "GHOST RC",
         "LOGIN_SUB" to "SECURE UPLINK V2.0",
         "TARGET_ID" to "TARGET ID",
         "CONNECT_BTN" to "ESTABLISH LINK",
@@ -171,7 +171,7 @@ object GhostLingo {
         "TODAYS_TRADES" to "รายการเทรดวันนี้",
         "SESSION_LEDGER" to "บัญชีรอบนี้",
         "NO_TRADES" to "ยังไม่มีรายการเทรด",
-        "LOGIN_TITLE" to "GHOST PROTOCOL",
+        "LOGIN_TITLE" to "GHOST RC",
         "LOGIN_SUB" to "ระบบเชื่อมต่อ V2.0",
         "TARGET_ID" to "ระบุ ID ปลายทาง",
         "CONNECT_BTN" to "เริ่มการเชื่อมต่อ",
@@ -562,13 +562,30 @@ fun TacticalDashboard(database: com.google.firebase.database.FirebaseDatabase, b
 
         // 7. ENGINE CONTROL (Moved from Rhythm Tab)
         val isManual = vitals.mode_name == "MANUAL"
-        val engineColor = if (isManual) NeonGreen else NeonRed
-        val engineText = if (isManual) "TURN ON" else "TURN OFF" // [UI REQUEST]
+        val isPaused = vitals.mode_name == "PAUSE"
+        
+        val engineColor = when {
+            isPaused -> Gold
+            isManual -> NeonGreen
+            else -> NeonRed
+        }
+        
+        val engineText = when {
+            isPaused -> "OVERRIDE (PAUSED)"
+            isManual -> "TURN ON"
+            else -> "TURN OFF"
+        }
 
         Button(
             onClick = { 
-                if (isManual) {
-                     // TURN ON -> Engage Auto-Scheduler
+                if (isManual || isPaused) {
+                     // TURN ON (or OVERRIDE) -> Engage Auto-Scheduler
+                     // If user hits Override, we can either go to Manual or Auto.
+                     // Going to Auto (0000) seems best to "Resume" normal operations if ready.
+                     // But user might want Manual. Let's send them to Auto-Scheduler, 
+                     // because if they wanted Manual they are already effectively paused.
+                     // Actually, user said "Adapt UI to show RESUME or OVERRIDE".
+                     // Let's assume hitting it engages the Auto-Scheduler (Resume).
                      val pl = mapOf("recipe" to "0000: Auto-Scheduler (Sync)")
                      cmdRef.push().setValue(mapOf("payload" to pl))
                 } else {
