@@ -1,19 +1,4 @@
-﻿Starting a Gradle Daemon (subsequent builds will be faster)
-gradle.bat : Warning: SDK processing. This version only 
-understands SDK XML versions up to 3 but an SDK XML file 
-of version 4 was encountered. This can happen if you use 
-versions of Android Studio and the command-line tools that 
-were released at different times.
-At C:\Users\Your 
-Mother\Desktop\Ghost_Mobile_App\build_release.ps1:14 char:1
-+ & $gradleCmd clean assembleRelease --stacktrace 2>&1 | 
-Out-File -File ...
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (Warning: SDK  
-   pr...ifferent times.:String) [], RemoteException
-    + FullyQualifiedErrorId : NativeCommandError
- 
-> Task :app:clean
+﻿> Task :app:clean
 > Task :app:buildKotlinToolingMetadata
 > Task :app:checkKotlinGradlePluginConfigurationErrors
 > Task :app:preBuild UP-TO-DATE
@@ -25,10 +10,9 @@ Out-File -File ...
 > Task :app:mapReleaseSourceSetPaths
 > Task :app:generateReleaseResources
 > Task :app:packageReleaseResources
+> Task :app:parseReleaseLocalResources
 > Task :app:createReleaseCompatibleScreenManifests
 > Task :app:extractDeepLinksRelease
-> Task :app:parseReleaseLocalResources
-> Task :app:mergeReleaseResources
 
 > Task :app:processReleaseMainManifest
 package="com.ghostcommand.app" found in source AndroidManifest.xml: C:\Users\Your Mother\Desktop\Ghost_Mobile_App\android_app\app\src\main\AndroidManifest.xml.
@@ -48,9 +32,10 @@ Recommendation: remove package="com.ghostcommand.app" from the source AndroidMan
 > Task :app:mergeReleaseShaders
 > Task :app:compileReleaseShaders NO-SOURCE
 > Task :app:generateReleaseAssets UP-TO-DATE
-> Task :app:checkReleaseDuplicateClasses
 > Task :app:mergeReleaseAssets
 > Task :app:compressReleaseAssets
+> Task :app:checkReleaseDuplicateClasses
+> Task :app:mergeReleaseResources
 > Task :app:collectReleaseDependencies
 > Task :app:sdkReleaseDependencyData
 > Task :app:validateSigningRelease
@@ -60,6 +45,7 @@ Recommendation: remove package="com.ghostcommand.app" from the source AndroidMan
 > Task :app:processReleaseResources
 > Task :app:optimizeReleaseResources
 > Task :app:mergeExtDexRelease
+
 > Task :app:compileReleaseKotlin
 w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:733:71 'versionCode: Int' is deprecated. Deprecated in Java
 w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:843:34 Parameter 'downloadId' is never used
@@ -73,8 +59,17 @@ w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/m
 w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:423:48 Parameter 'lang' is never used
 
 > Task :app:compileReleaseJavaWithJavac
-warning: [options] source value 8 is obsolete and will be 
-removed in a future release
+gradle.bat : warning: [options] source value 8 is obsolete 
+and will be removed in a future release
+At C:\Users\Your 
+Mother\Desktop\Ghost_Mobile_App\build_release.ps1:14 char:1
++ & $gradleCmd clean assembleRelease --stacktrace 2>&1 | 
+Out-File -File ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: [opt 
+   io... future release:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
 warning: [options] target value 8 is obsolete and will be 
 removed in a future release
 warning: [options] To suppress warnings about obsolete 
@@ -95,5 +90,5 @@ options, use -Xlint:-options.
 > Task :app:lintVitalRelease
 > Task :app:assembleRelease
 
-BUILD SUCCESSFUL in 2m 6s
+BUILD SUCCESSFUL in 1m 31s
 47 actionable tasks: 47 executed

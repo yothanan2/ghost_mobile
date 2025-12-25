@@ -20,17 +20,17 @@ def trigger_update():
 
     # 2. Define Update Payload
     version_data = {
-        "code": 23,                 
-        "name": "2.03",             
-        "mandatory": False, # Optional visual update         
-        "changelog": "🎨 UPDATE v2.03: Appearance Upgrade.\n- NEW Tactical App Icon.\n- Homescreen Polish.\n- Performance fixes.",
+        "code": 24,                 
+        "name": "2.04",             
+        "mandatory": False,          
+        "changelog": "🔧 HOTFIX v2.04: Notification Label Fix.\n- Fixed 'v1.4' showing in download manager.\n- Future updates will show correct version.",
         "changelog_map": {
-            "en": "🎨 UPDATE v2.03: Appearance Upgrade.\n- NEW Tactical App Icon.\n- Homescreen Polish.\n- Performance fixes.",
-            "th": "🎨 อัปเดต v2.03: ปรับปรุงรูปลักษณ์\n- ไอคอนแอปใหม่ (Tactical)\n- ปรับปรุงหน้าจอหลัก",
-            "ru": "🎨 ОБНОВЛЕНИЕ v2.03: Обновление внешнего вида\n- НОВАЯ иконка приложения\n- Улучшения интерфейса",
-            "es": "🎨 ACTUALIZACIÓN v2.03: Mejora de Apariencia\n- NUEVO Icono de Aplicación\n- Mejoras de Interfaz"
+            "en": "🔧 HOTFIX v2.04: Notification Label Fix.\n- Fixed 'v1.4' showing in download manager.\n- Future updates will show correct version.",
+            "th": "🔧 แก้ไข v2.04: แก้ชื่อการแจ้งเตือน\n- แก้ไขที่แสดงผิดเป็น 'v1.4'",
+            "ru": "🔧 ИСПРАВЛЕНИЕ v2.04: Исправление ярлыка\n- Исправлено отображение 'v1.4'",
+            "es": "🔧 CORRECCIÓN v2.04: Etiqueta de Notificación\n- Se corrigió 'v1.4' en la descarga"
         },
-        "url": "https://github.com/yothanan2/ghost_mobile/raw/master/Ghost_v2.03_Release.apk"
+        "url": "https://github.com/yothanan2/ghost_mobile/raw/master/Ghost_v2.04_Release.apk"
     }
 
     # 3. Push to 'system/version' (Correct Path per MainActivity.kt)

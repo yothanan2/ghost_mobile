@@ -777,7 +777,7 @@ fun CheckForUpdates(database: com.google.firebase.database.FirebaseDatabase, con
                 Button(
                     onClick = { 
                         showDialog = false
-                        downloadAndInstallUpdate(context, remoteVersion.url) 
+                        downloadAndInstallUpdate(context, remoteVersion.url, remoteVersion.name) 
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = NeonGreen)
                 ) { Text("INITIALIZE", color = Color.Black, fontWeight = FontWeight.Bold) }
@@ -791,7 +791,7 @@ fun CheckForUpdates(database: com.google.firebase.database.FirebaseDatabase, con
     }
 }
 
-fun downloadAndInstallUpdate(context: Context, url: String) {
+fun downloadAndInstallUpdate(context: Context, url: String, versionName: String) {
     // 1. Check Permission to Install Packages (Android 8+)
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         if (!context.packageManager.canRequestPackageInstalls()) {
@@ -807,7 +807,7 @@ fun downloadAndInstallUpdate(context: Context, url: String) {
     try {
         val fileName = "ghost_update_${System.currentTimeMillis()}.apk"
         val request = DownloadManager.Request(Uri.parse(url))
-            .setTitle("Ghost Upgrade v1.4")
+            .setTitle("Ghost Upgrade $versionName")
             .setDescription("Downloading protocol patch...")
             .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
             .setDestinationInExternalFilesDir(context, Environment.DIRECTORY_DOWNLOADS, fileName)
