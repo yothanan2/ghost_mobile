@@ -1,4 +1,4 @@
-Write-Host "--- Ghost Command RELEASE BUILD v1.6 (Windows) ---" -ForegroundColor Magenta
+Write-Host "--- Ghost Command RELEASE BUILD v1.7 (Signed) ---" -ForegroundColor Magenta
 
 # 0. Setup
 $scriptDir = $PSScriptRoot
@@ -19,19 +19,15 @@ if (Select-String -Path "build_release_log.txt" -Pattern "BUILD FAILED") {
 }
 
 # 3. Locate APK
-$apkPath = "$scriptDir\android_app\app\build\outputs\apk\release\app-release-unsigned.apk" 
-# Note: It might be unsigned if no signing config is present. checking for any release apk.
-if (-not (Test-Path $apkPath)) {
-    $apkPath = "$scriptDir\android_app\app\build\outputs\apk\release\app-release.apk"
-}
+$apkPath = "$scriptDir\android_app\app\build\outputs\apk\release\app-release.apk" 
+# Note: Now signed, so it should be app-release.apk
 
 if (Test-Path $apkPath) {
     Write-Host "SUCCESS: Release APK Generated at:" -ForegroundColor Green
     Write-Host $apkPath -ForegroundColor White
     
-    # Copy to Desktop for easy GitHub upload
-    Copy-Item $apkPath -Destination "$scriptDir\Ghost_v1.6_Release.apk"
-    Write-Host "Copied to Desktop/Ghost_Mobile_App/Ghost_v1.6_Release.apk" -ForegroundColor Green
+    Copy-Item $apkPath -Destination "$scriptDir\Ghost_v1.7_Release.apk"
+    Write-Host "Copied to Desktop/Ghost_Mobile_App/Ghost_v1.7_Release.apk" -ForegroundColor Green
 } else {
     Write-Error "APK NOT FOUND. See build_release_log.txt."
 }

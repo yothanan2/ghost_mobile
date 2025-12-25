@@ -15,8 +15,8 @@ android {
         minSdk = 24
         minSdk = 24
         targetSdk = 34
-        versionCode = 7
-        versionName = "1.6"
+        versionCode = 8
+        versionName = "1.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -24,9 +24,19 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("release.jks")
+            storePassword = "android"
+            keyAlias = "key0"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
