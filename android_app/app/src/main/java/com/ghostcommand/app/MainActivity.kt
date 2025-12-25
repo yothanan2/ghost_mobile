@@ -111,7 +111,8 @@ data class RemoteVersion(
     val name: String = "",
     val url: String = "",
     val changelog: String = "",
-    val mandatory: Boolean = false
+    val mandatory: Boolean = false,
+    val changelog_map: Map<String, String> = emptyMap()
 )
 
 // --- TRANSLATION MODULE ---
@@ -711,6 +712,14 @@ fun CheckForUpdates(database: com.google.firebase.database.FirebaseDatabase, con
     }
 
     if (showDialog) {
+        // Resolve Localized Changelog
+        val sysLang = java.util.Locale.getDefault().language 
+        val displayChangelog = if (remoteVersion.changelog_map.containsKey(sysLang)) {
+            remoteVersion.changelog_map[sysLang] ?: remoteVersion.changelog
+        } else {
+            remoteVersion.changelog // Fallback to default
+        }
+
         AlertDialog(
             onDismissRequest = { if (!remoteVersion.mandatory) showDialog = false },
             containerColor = CardBg,
@@ -718,10 +727,10 @@ fun CheckForUpdates(database: com.google.firebase.database.FirebaseDatabase, con
             text = { 
                 Column {
                     Text("New capabilities available. Initialize upgrade sequence?", color = Color.White)
-                    if (remoteVersion.changelog.isNotEmpty()) {
+                    if (displayChangelog.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(10.dp))
                         Text("PATCH NOTES:", color = TextDim, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                        Text(remoteVersion.changelog, color = Color.Gray, fontSize = 12.sp, fontFamily = FontFamily.Monospace)
+                        Text(displayChangelog, color = Color.Gray, fontSize = 12.sp, fontFamily = FontFamily.Monospace)
                     }
                 }
             },

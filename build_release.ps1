@@ -1,7 +1,9 @@
-Write-Host "--- Ghost Command RELEASE BUILD v1.8 (Signed) ---" -ForegroundColor Magenta
+Write-Host "--- Ghost Command RELEASE BUILD v2.00 (Signed) ---" -ForegroundColor Magenta
 
 # 0. Setup
 $scriptDir = $PSScriptRoot
+# ... (lines 4-29 skipped in target content for brevity, assuming tool context handles it, but safer to just update title and then update bottom separate) 
+# I'll update title first.
 $gradleDistBin = "$scriptDir\android_app\gradle_dist\gradle-8.5\bin\gradle.bat"
 $gradleCmd = $gradleDistBin
 
@@ -26,8 +28,8 @@ if (Test-Path $apkPath) {
     Write-Host "SUCCESS: Release APK Generated at:" -ForegroundColor Green
     Write-Host $apkPath -ForegroundColor White
     
-    Copy-Item $apkPath -Destination "$scriptDir\Ghost_v1.8_Release.apk"
-    Write-Host "Copied to Desktop/Ghost_Mobile_App/Ghost_v1.8_Release.apk" -ForegroundColor Green
+    Copy-Item $apkPath -Destination "$scriptDir\Ghost_v2.00_Release.apk"
+    Write-Host "Copied to Desktop/Ghost_Mobile_App/Ghost_v2.00_Release.apk" -ForegroundColor Green
 } else {
     Write-Error "APK NOT FOUND. See build_release_log.txt."
 }

@@ -20,11 +20,17 @@ def trigger_update():
 
     # 2. Define Update Payload
     version_data = {
-        "code": 8,                  
-        "name": "1.7",              
+        "code": 20,                 
+        "name": "2.00",             
         "mandatory": True,          
-        "changelog": "🔥 HOTFIX v1.7: Fixed 'App not installed' error.\n- Signed Release APK\n- Full Remote Control Features",
-        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v1.7/Ghost_v1.7_Release.apk"
+        "changelog": "🔥 MAJOR UPDATE v2.00: Swarm Mode & Localization.\n- Added Swarm Toggle\n- Localized Changelogs Supported",
+        "changelog_map": {
+            "en": "🔥 MAJOR UPDATE v2.00\n- Swarm Mode Toggle Added\n- Full Localization Support\n- Performance Enhancements",
+            "ru": "🔥 ОБНОВЛЕНИЕ v2.00\n- Добавлен режим Swarm\n- Поддержка локализации\n- Улучшение производительности",
+            "es": "🔥 ACTUALIZACIÓN v2.00\n- Modo Enjambre Agregado\n- Soporte de Localización",
+            "de": "🔥 UPDATE v2.00\n- Swarm-Modus hinzugefügt\n- Lokalisierungsunterstützung"
+        },
+        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.00/Ghost_v2.00_Release.apk"
     }
 
     # 3. Push to 'system/version' (Correct Path per MainActivity.kt)
