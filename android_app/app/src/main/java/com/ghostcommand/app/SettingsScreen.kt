@@ -4,7 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -112,28 +114,37 @@ fun RiskVault(cmdRef: DatabaseReference, lang: String, vitals: GhostVitals) {
 
 @Composable
 fun RemoteToggleRow(label: String, cmdRef: DatabaseReference, key: String, isActive: Boolean) {
-    val onColor = if (isActive) Color(0xFF112211) else Color(0xFF111111)
-    val onTxt = if (isActive) NeonGreen else Color.Gray
+    // OPTIMISTIC UI: Initialize with server state, but allow immediate local override
+    var localState by remember(isActive) { mutableStateOf(isActive) }
     
-    val offColor = if (!isActive) Color(0xFF221111) else Color(0xFF111111)
-    val offTxt = if (!isActive) NeonRed else Color.Gray
+    val onColor = if (localState) Color(0xFF112211) else Color(0xFF111111)
+    val onTxt = if (localState) NeonGreen else Color.Gray
+    
+    val offColor = if (!localState) Color(0xFF221111) else Color(0xFF111111)
+    val offTxt = if (!localState) NeonRed else Color.Gray
 
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Text(label, color = Color.White, fontSize = 14.sp)
         Row {
             Button(
-                onClick = { sendRemoteCmd(cmdRef, mapOf(key to true)) },
+                onClick = { 
+                    localState = true
+                    sendRemoteCmd(cmdRef, mapOf(key to true)) 
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = onColor),
-                modifier = Modifier.height(30.dp).border(1.dp, if(isActive) NeonGreen else Color.Transparent, RoundedCornerShape(50)),
+                modifier = Modifier.height(30.dp).border(1.dp, if(localState) NeonGreen else Color.Transparent, RoundedCornerShape(50)),
                 contentPadding = PaddingValues(0.dp)
             ) { Text("ON", color = onTxt, fontSize = 10.sp) }
             
             Spacer(Modifier.width(5.dp))
             
             Button(
-                onClick = { sendRemoteCmd(cmdRef, mapOf(key to false)) },
+                onClick = { 
+                    localState = false
+                    sendRemoteCmd(cmdRef, mapOf(key to false)) 
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = offColor),
-                modifier = Modifier.height(30.dp).border(1.dp, if(!isActive) NeonRed else Color.Transparent, RoundedCornerShape(50)),
+                modifier = Modifier.height(30.dp).border(1.dp, if(!localState) NeonRed else Color.Transparent, RoundedCornerShape(50)),
                 contentPadding = PaddingValues(0.dp)
             ) { Text("OFF", color = offTxt, fontSize = 10.sp) }
         }
@@ -160,6 +171,9 @@ fun StrategyConfig(cmdRef: DatabaseReference, lang: String) {
     var selectedRecipe by remember { mutableStateOf("Select Strategy...") }
     var recipesMap by remember { mutableStateOf<Map<String, Any>>(emptyMap()) }
     var isLoading by remember { mutableStateOf(true) }
+    
+    // Dynamic Form State
+    val editState = remember(selectedRecipe) { mutableStateMapOf<String, Any>() }
 
     // Fetch Recipes
     DisposableEffect(Unit) {
@@ -176,8 +190,9 @@ fun StrategyConfig(cmdRef: DatabaseReference, lang: String) {
         onDispose { ref?.removeEventListener(listener) }
     }
     
+    // Using simple Column with Scroll since we are inside a Card usually
     CyberCard {
-        Column(Modifier.padding(15.dp)) {
+        Column(Modifier.padding(15.dp).verticalScroll(rememberScrollState())) {
             Text("STRATEGY ENGINE (DYNAMIC)", color = NeonGreen, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(10.dp))
             Text(if (isLoading) "Downloading Manifest..." else "${recipesMap.size} Recipes Available", color = TextDim, fontSize = 12.sp)
@@ -203,6 +218,10 @@ fun StrategyConfig(cmdRef: DatabaseReference, lang: String) {
                             text = { Text(name, color = Color.White) },
                             onClick = { 
                                 selectedRecipe = name
+                                // Initialize Edit State
+                                editState.clear()
+                                val data = recipesMap[name] as? Map<String, Any> ?: emptyMap()
+                                data.forEach { (k, v) -> editState[k] = v }
                                 expanded = false 
                             }
                         )
@@ -226,46 +245,89 @@ fun StrategyConfig(cmdRef: DatabaseReference, lang: String) {
                 Text("INJECT & RUN", color = Color.Black, fontWeight = FontWeight.Bold)
             }
             
-            // QUICK EDITOR
+            // DYNAMIC EDITOR
             if (recipesMap.containsKey(selectedRecipe)) {
-                val rData = recipesMap[selectedRecipe] as? Map<String, Any> ?: emptyMap()
-                var editRisk by remember(selectedRecipe) { mutableStateOf(rData["RISK_PERCENT"]?.toString() ?: "0.0") }
-                var editLot by remember(selectedRecipe) { mutableStateOf(rData["LOT_SIZE"]?.toString() ?: "0.01") }
-                var editSL by remember(selectedRecipe) { mutableStateOf(rData["STOP_LOSS"]?.toString() ?: "3.0") }
-                var editTP by remember(selectedRecipe) { mutableStateOf(rData["TAKE_PROFIT"]?.toString() ?: "6.0") }
-                
                 Spacer(Modifier.height(20.dp))
                 Divider(color = Color.Gray, thickness = 1.dp)
                 Spacer(Modifier.height(10.dp))
-                Text("QUICK TWEAK", color = NeonBlue, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                
-                Row(Modifier.fillMaxWidth()) {
-                    OutlinedTextField(value = editRisk, onValueChange = { editRisk = it }, label = { Text("Risk %") }, modifier = Modifier.weight(1f), colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White))
-                    Spacer(Modifier.width(10.dp))
-                    OutlinedTextField(value = editLot, onValueChange = { editLot = it }, label = { Text("Lot Size") }, modifier = Modifier.weight(1f), colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White))
-                }
-                Row(Modifier.fillMaxWidth()) {
-                    OutlinedTextField(value = editSL, onValueChange = { editSL = it }, label = { Text("SL ($)") }, modifier = Modifier.weight(1f), colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White))
-                    Spacer(Modifier.width(10.dp))
-                    OutlinedTextField(value = editTP, onValueChange = { editTP = it }, label = { Text("TP ($)") }, modifier = Modifier.weight(1f), colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White))
-                }
-                
+                Text("FULL SCALE PARAMETERS", color = NeonBlue, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(10.dp))
+                
+                val rData = recipesMap[selectedRecipe] as? Map<String, Any> ?: emptyMap()
+                
+                // Initialize editState if empty (first load fallback)
+                if (editState.isEmpty() && rData.isNotEmpty()) {
+                    rData.forEach { (k, v) -> editState[k] = v }
+                }
+
+                // Filter System Keys
+                val systemKeys = listOf("description", "locked", "MAGIC_NUMBER", "TIMEFRAME", "TIMEFRAME_NAME", "SYMBOL", "MODE_TYPE", "GRAVITY_TIMEFRAME")
+                
+                // Sort keys: Risk items first, then others
+                val sortedKeys = rData.keys.filter { !systemKeys.contains(it) }.sortedBy { key ->
+                   when {
+                       key.contains("RISK") -> "00_$key"
+                       key.contains("LOT") -> "01_$key"
+                       key.contains("STOP") -> "02_$key"
+                       key.contains("TAKE") -> "03_$key"
+                       else -> "99_$key"
+                   }
+                }
+
+                sortedKeys.forEach { key ->
+                    val value = editState[key]
+                    
+                    Column(Modifier.padding(vertical = 5.dp)) {
+                        
+                        if (value is Boolean) {
+                            // SWITCH
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text(key.replace("_", " "), color = Color.Gray, fontSize = 12.sp)
+                                Switch(
+                                    checked = value,
+                                    onCheckedChange = { editState[key] = it },
+                                    colors = SwitchDefaults.colors(checkedThumbColor = NeonGreen, checkedTrackColor = Color(0xFF112211))
+                                )
+                            }
+                        } else {
+                            // TEXT / NUMBER FIELD
+                            var txtVal by remember(key, value) { mutableStateOf(value.toString()) }
+                            OutlinedTextField(
+                                value = txtVal,
+                                onValueChange = { 
+                                    txtVal = it 
+                                    // Try to parse back to number if original was number
+                                    val orig = rData[key]
+                                    if (orig is Number) {
+                                        val d = it.toDoubleOrNull()
+                                        if (d != null) editState[key] = d
+                                    } else {
+                                        editState[key] = it
+                                    }
+                                },
+                                label = { Text(key.replace("_", " "), fontSize = 10.sp) },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedTextColor = Color.White, 
+                                    unfocusedTextColor = Color.White,
+                                    focusedBorderColor = Color.Gray,
+                                    unfocusedBorderColor = Color(0xFF333333)
+                                )
+                            )
+                        }
+                    }
+                }
+                
+                Spacer(Modifier.height(15.dp))
                 Button(
                     onClick = {
-                        val settings = mapOf(
-                            "RISK_PERCENT" to (editRisk.toDoubleOrNull() ?: 0.0),
-                            "LOT_SIZE" to (editLot.toDoubleOrNull() ?: 0.01),
-                            "STOP_LOSS" to (editSL.toDoubleOrNull() ?: 0.0),
-                            "TAKE_PROFIT" to (editTP.toDoubleOrNull() ?: 0.0)
-                        )
-                        val payload = mapOf("save_recipe" to mapOf("name" to selectedRecipe, "settings" to settings))
+                        val payload = mapOf("save_recipe" to mapOf("name" to selectedRecipe, "settings" to editState.toMap()))
                         sendRemoteCmd(cmdRef, payload)
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF333333)),
                     modifier = Modifier.fillMaxWidth().height(40.dp)
                 ) {
-                    Text("SAVE CHANGES", color = Color.White)
+                    Text("SAVE CONFIGURATION", color = Color.White)
                 }
             }
         }

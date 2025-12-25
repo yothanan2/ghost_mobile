@@ -11,12 +11,9 @@ android {
     defaultConfig {
         applicationId = "com.ghostcommand.app"
         minSdk = 24
-        minSdk = 24
-        minSdk = 24
-        minSdk = 24
         targetSdk = 34
-        versionCode = 21
-        versionName = "2.01"
+        versionCode = 22
+        versionName = "2.02"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
