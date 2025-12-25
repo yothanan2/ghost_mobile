@@ -1,0 +1,34 @@
+ATTENTION PYTHON AGENT:
+
+PART 1: HISTORY FIX (PRIORITY)
+The user is reporting that closed trades are NOT appearing in the "History" tab of the Android App.
+Your codebase likely has a logic gap where it closes a trade but forgets to call the uplink.
+SEARCH for your trade closure logic (e.g., `trade.msg` or `order_close`) and ADD the `broadcast_trade` call.
+
+# Inside execution.py or similar:
+if result.retcode == mt5.TRADE_RETCODE_DONE:
+    print(f"Trade Closed: {symbol} Profit: {profit}")
+    # MUST CALL THIS:
+    uplink.broadcast_trade(symbol, type, profit)
+
+
+PART 2: GOD MODE TOGGLE (NEW FEATURE)
+The App now sends a new command: `UPDATE_CONFIG`.
+You must update your `telemetry_bridge.py` or command handler in `main.py` to process this.
+
+# COMMAND FORMAT RECEVIED:
+# {
+#   "command": "UPDATE_CONFIG",
+#   "payload": { "auto_god_mode": true/false }
+# }
+
+# IMPLEMENTATION GUIDE:
+1. In your command listener (likely in `main.py` or `telemetry_bridge.py`):
+   if command == "UPDATE_CONFIG" or (isinstance(command, dict) and command.get('command') == 'UPDATE_CONFIG'):
+       new_config = command['payload']
+       if 'auto_god_mode' in new_config:
+           cfg.GOD_MODE = new_config['auto_god_mode']
+           print(f"⚡ REMOTE: God Mode Auto-Switch set to {cfg.GOD_MODE}")
+
+2. Ensure your Bot Logic (`brain.py` or `execution.py`) RESPECTS `cfg.GOD_MODE`.
+   - If `cfg.GOD_MODE` is False, DO NOT enter aggressive modes even if Volatility is high.

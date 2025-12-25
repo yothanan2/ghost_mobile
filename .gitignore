@@ -1,0 +1,42 @@
+# Android
+*.apk
+*.ap_
+*.dex
+*.class
+bin/
+gen/
+local.properties
+.gradle/
+build/
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+
+# Android Studio
+*.iml
+.idea/
+.navigation/
+captures/
+.externalNativeBuild/
+.cxx/
+*.hprof
+*.keystore
+
+# Python / Virtual Envs
+__pycache__/
+*.pyc
+venv/
+.env
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# VS Code
+.vscode/
+
+# Secrets
+serviceAccountKey.json
+Keys/
+*.keystore
+*.jks
