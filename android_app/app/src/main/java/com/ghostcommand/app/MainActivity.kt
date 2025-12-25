@@ -463,7 +463,10 @@ fun TacticalDashboard(database: com.google.firebase.database.FirebaseDatabase, b
 
                     // [RESTORE EQUITY]
                     val eqStr = formatCurrency(vitals.equity, vitals.currency_symbol, vitals.currency)
-                    Text("${TR("EQ_LABEL", lang)}: $eqStr", color = Color.Gray, fontSize = 11.sp)
+                    Row {
+                        Text("${TR("EQ_LABEL", lang)}: ", color = Color.White, fontSize = 12.sp)
+                        Text(eqStr, color = NeonGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Text(TR("ACTIVE_TRADES", lang), color = TextDim, fontSize = 12.sp) // [UI FIX] 12sp
