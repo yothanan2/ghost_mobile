@@ -368,7 +368,11 @@ fun TacticalDashboard(database: com.google.firebase.database.FirebaseDatabase, b
         // 1. HEADER
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column {
-                Text(TR("LOGIN_TITLE", lang), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                Row(verticalAlignment = Alignment.Bottom) {
+                    Text(TR("LOGIN_TITLE", lang), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    Spacer(Modifier.width(6.dp))
+                    Text("v${BuildConfig.VERSION_NAME}", color = TextDim, fontSize = 12.sp, modifier = Modifier.padding(bottom = 3.dp))
+                }
                 Text("ID: $botId  |  $connectionState", color = NeonGreen, fontSize = 10.sp)
             }
             Row {

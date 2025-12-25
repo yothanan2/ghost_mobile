@@ -13,10 +13,10 @@ except ValueError:
 
 # 2. Define the Update Payload
 version_data = {
-    "code": 5,
-    "name": "1.4",
-    "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v.1.4/app-debug.apk",
-    "changelog": "- Seamless OTA (No Chrome)\n- Internal Engine Optimization",
+    "code": 6,
+    "name": "1.5",
+    "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v.1.5/app-debug.apk",
+    "changelog": "- Added Visible Version Number to Header\n- System Stability Improvements",
     "mandatory": False
 }
 
