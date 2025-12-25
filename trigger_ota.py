@@ -20,17 +20,17 @@ def trigger_update():
 
     # 2. Define Update Payload
     version_data = {
-        "code": 21,                 
-        "name": "2.01",             
-        "mandatory": True,          
-        "changelog": "🔥 UPDATE v2.01: Dynamic Strategy & Visual Sync.\n- Recipes Sync with Bot\n- In-App Strategy Editor\n- Settings Visual Feedback",
+        "code": 23,                 
+        "name": "2.03",             
+        "mandatory": False, # Optional visual update         
+        "changelog": "🎨 UPDATE v2.03: Appearance Upgrade.\n- NEW Tactical App Icon.\n- Homescreen Polish.\n- Performance fixes.",
         "changelog_map": {
-            "en": "🔥 UPDATE v2.01: Dynamic Strategy & Visual Sync.\n- Recipes Sync with Bot\n- In-App Strategy Editor\n- Settings Visual Feedback",
-            "th": "🔥 อัปเดต v2.01: กลยุทธ์แบบไดนามิก & การซิงค์สถานะ\n- ซิงค์สูตรกับบอท\n- แก้ไขกลยุทธ์ในแอป\n- การแสดงผลการตั้งค่า",
-            "ru": "🔥 ОБНОВЛЕНИЕ v2.01: Динамические Стратегии\n- Синхронизация рецептов\n- Редактор стратегий\n- Визуальная синхронизация",
-            "es": "🔥 ACTUALIZACIÓN v2.01: Estrategia Dinámica\n- Sincronización de Recetas\n- Editor de Estrategia\n- Sincronización Visual"
+            "en": "🎨 UPDATE v2.03: Appearance Upgrade.\n- NEW Tactical App Icon.\n- Homescreen Polish.\n- Performance fixes.",
+            "th": "🎨 อัปเดต v2.03: ปรับปรุงรูปลักษณ์\n- ไอคอนแอปใหม่ (Tactical)\n- ปรับปรุงหน้าจอหลัก",
+            "ru": "🎨 ОБНОВЛЕНИЕ v2.03: Обновление внешнего вида\n- НОВАЯ иконка приложения\n- Улучшения интерфейса",
+            "es": "🎨 ACTUALIZACIÓN v2.03: Mejora de Apariencia\n- NUEVO Icono de Aplicación\n- Mejoras de Interfaz"
         },
-        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.01/Ghost_v2.01_Release.apk"
+        "url": "https://github.com/yothanan2/ghost_mobile/raw/master/Ghost_v2.03_Release.apk"
     }
 
     # 3. Push to 'system/version' (Correct Path per MainActivity.kt)
