@@ -19,6 +19,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.foundation.border
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -69,7 +71,14 @@ data class GhostVitals(
     val confidence: Double = 0.0,
     val daily_profit: Double = 0.0,
     val daily_target: Double = 60.0,
-    val auto_god_mode: Boolean = true, // [NEW] Track God Mode State
+    val auto_god_mode: Boolean = true,
+    // [NEW] V2.01 State Sync
+    val swarm_mode: Boolean = false,
+    val use_firewall: Boolean = true,
+    val whale_tracker: Boolean = true, // SR Filter
+    val auto_rev: Boolean = false,
+    val risk_percent: Double = 1.5,
+    val mode_name: String = "MANUAL", // For Rhythm/Auto Pilot
     // [NEW] Dynamic Currency
     val currency_symbol: String = "",
     val currency: String = "USD"
@@ -294,7 +303,22 @@ fun MainScreen(botId: String, lang: String, onToggleLang: () -> Unit, onLogout: 
     var selectedTab by remember { mutableStateOf(0) }
     
     // [OTA] UPDATE CHECKER & DOWNLOAD HANDLER
-    CheckForUpdates(database, LocalContext.current)
+    CheckForUpdates(database, LocalContext.current, lang)
+
+    // [VITALS] Live Telemetry for State Sync
+    var vitals by remember { mutableStateOf(GhostVitals()) }
+    DisposableEffect(botId) {
+        val rules = database.getReference("users/$botId/system/vitals")
+        val listener = object : com.google.firebase.database.ValueEventListener {
+            override fun onDataChange(s: com.google.firebase.database.DataSnapshot) {
+                val v = s.getValue(GhostVitals::class.java)
+                if (v != null) vitals = v
+            }
+            override fun onCancelled(e: com.google.firebase.database.DatabaseError) {}
+        }
+        rules.addValueEventListener(listener)
+        onDispose { rules.removeEventListener(listener) }
+    }
 
     Column(modifier = Modifier.fillMaxSize().background(BgDark)) {
         // CONTENT AREA
@@ -303,7 +327,7 @@ fun MainScreen(botId: String, lang: String, onToggleLang: () -> Unit, onLogout: 
                 0 -> TacticalDashboard(database, botId, onLogout, lang, onToggleLang)
                 1 -> NeuralStream(database, botId, lang)
                 2 -> DailyHistory(database, botId, lang)
-                3 -> SettingsScreen(database, botId, lang)
+                3 -> SettingsScreen(database, botId, lang, vitals)
             }
         }
         
@@ -316,7 +340,8 @@ fun MainScreen(botId: String, lang: String, onToggleLang: () -> Unit, onLogout: 
             TabButton(TR("DASHBOARD", lang), selected = selectedTab == 0) { selectedTab = 0 }
             TabButton(TR("NEURAL_STREAM", lang), selected = selectedTab == 1) { selectedTab = 1 }
             TabButton(TR("HISTORY", lang), selected = selectedTab == 2) { selectedTab = 2 }
-            TabButton("SETTINGS", selected = selectedTab == 3) { selectedTab = 3 }
+            // [UI POLISH] Icon for Settings to save space
+            IconTabButton(androidx.compose.material.icons.Icons.Default.Settings, selected = selectedTab == 3) { selectedTab = 3 }
         }
     }
 }
@@ -329,6 +354,19 @@ fun TabButton(text: String, selected: Boolean, onClick: () -> Unit) {
         shape = RoundedCornerShape(8.dp)
     ) {
         Text(text, color = if (selected) NeonGreen else TextDim, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+fun IconTabButton(icon: androidx.compose.ui.graphics.vector.ImageVector, selected: Boolean, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColors(containerColor = if (selected) Color(0xFF222222) else Color.Transparent),
+        shape = RoundedCornerShape(8.dp),
+        contentPadding = PaddingValues(0.dp),
+        modifier = Modifier.width(60.dp) // Fixed width for icon
+    ) {
+        Icon(icon, contentDescription = null, tint = if (selected) NeonGreen else TextDim)
     }
 }
 
@@ -688,7 +726,7 @@ fun FlightGauge(title: String, value: Double, max: Double, color: Color, label: 
 
 // --- OTA UPDATE MANAGER ---
 @Composable
-fun CheckForUpdates(database: com.google.firebase.database.FirebaseDatabase, context: Context) {
+fun CheckForUpdates(database: com.google.firebase.database.FirebaseDatabase, context: Context, lang: String) {
     var showDialog by remember { mutableStateOf(false) }
     var remoteVersion by remember { mutableStateOf(RemoteVersion()) }
     val currentVersionCode = try {
@@ -712,10 +750,11 @@ fun CheckForUpdates(database: com.google.firebase.database.FirebaseDatabase, con
     }
 
     if (showDialog) {
-        // Resolve Localized Changelog
-        val sysLang = java.util.Locale.getDefault().language 
-        val displayChangelog = if (remoteVersion.changelog_map.containsKey(sysLang)) {
-            remoteVersion.changelog_map[sysLang] ?: remoteVersion.changelog
+        // Resolve Localized Changelog (Use App Language)
+        // Map Keys: "en", "th" (lowercase). App Lang: "EN", "TH" (uppercase).
+        val lookupKey = lang.lowercase()
+        val displayChangelog = if (remoteVersion.changelog_map.containsKey(lookupKey)) {
+            remoteVersion.changelog_map[lookupKey] ?: remoteVersion.changelog
         } else {
             remoteVersion.changelog // Fallback to default
         }

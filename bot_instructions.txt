@@ -1,167 +1,83 @@
-# INSTRUCTIONS FOR VPS AGENT
+# INSTRUCTIONS FOR VPS AGENT (GHOST BOT V2.01 UPDATE)
 
-# [CRITICAL] PRE-REQUISITE ACTION: BACKUP
-# Before applying any changes, please create a full backup of the current bot folder.
-# The bot is currently HEALTHY and FUNCTIONING.
-# Suggested Backup Name: "pre-ghost app admin remote control"
-# ---------------------------------------------------------
+The Android App (v2.01) now supports Dynamic Strategy Injection and Visual State Sync.
+Please apply the following changes to the Bot's codebase on the VPS.
 
-# TARGET FILE: dashboard.py
+## 1. Update `mobile_link.py`
+**Goal**: Allow the bot to upload its list of recipes to Firebase so the App can display them.
 
-Please replace the entire `handle_remote_command` method in `dashboard.py` with the following code. 
-This update adds **FULL REMOTE CONTROL** capabilities, including Scheduler JSON updates and Deep Config modification.
+**Action**: Add the `broadcast_recipes` method to the `GhostUplink` class.
 
 ```python
-    def handle_remote_command(self, cmd_data):
+    def broadcast_recipes(self, cookbook):
         """
-        Executes commands received from Firebase (Mobile App).
-        Supports: Config updates, Mode switches, Panic, Engine control, and File Overwrites.
+        Uploads the full Recipe Manifest to Firebase for the Mobile App.
+        Path: users/{bot_id}/system/recipes
         """
-        if not cmd_data: return
-        
-        # Helper for boolean conversion
-        def to_bool(v):
-            if isinstance(v, bool): return v
-            return str(v).lower() in ("true", "1", "yes", "on")
-
         try:
-            # 1. Extract the primary data
-            data = cmd_data.get("payload", {})
-            if not data: return
-            
-            # 2. [FIX] Handle Nested Payloads (Some apps nest payload inside payload)
-            inner_payload = data.get("payload", {})
-            if isinstance(inner_payload, dict):
-                data.update(inner_payload)
-
-            # --- COMMAND HANDLERS ---
-            
-            # [A] ENGINE START/STOP (Pause/Resume)
-            if "is_trading_active" in data:
-                state = to_bool(data["is_trading_active"])
-                current_state = utils.CURRENT_CONFIG.get("IS_TRADING_ACTIVE", True)
-                if current_state != state:
-                    self.toggle_pause(reason="REMOTE")
-
-            # [B] PANIC BUTTON
-            if "action" in data:
-                act = data["action"]
-                if act == "CLOSE_ALL":
-                    self.log("🚨 REMOTE PANIC RECEIVED: CLOSING ALL TRADES")
-                    self.mobile_log("🚨 REMOTE: PANIC EXECUTION")
-                    self.executor.close_all_panic()
-                elif act == "RESTART":
-                     self.uplink.send_log("⚡ REMOTE: REBOOTING SYSTEM...")
-                     self.hard_reboot()
-
-            # [C] SWARM MODE
-            if "swarm_mode" in data:
-                state = to_bool(data["swarm_mode"])
-                status_msg = self.swarm.activate(state)
-                self.root.after(0, lambda: self._sync_swarm_ui(state))
-                self.log(status_msg)
-                
-            # [D] DEEP CONFIG UPDATE (Generic Handler)
-            if "update_config" in data:
-                # Expects a dict of KEY: VALUE pairs to overwrite in config.py
-                changes = data["update_config"]
-                if isinstance(changes, dict):
-                    count = 0
-                    for key, val in changes.items():
-                        if hasattr(cfg, key):
-                            # Convert types if necessary (basic types)
-                            current_val = getattr(cfg, key)
-                            if isinstance(current_val, float): val = float(val)
-                            elif isinstance(current_val, int): val = int(val)
-                            elif isinstance(current_val, bool): val = to_bool(val)
-                            
-                            setattr(cfg, key, val)
-                            utils.CURRENT_CONFIG[key] = val
-                            count += 1
-                    
-                    if count > 0:
-                        msg = f"⚙️ REMOTE: Updated {count} config settings."
-                        self.log(msg)
-                        self.mobile_log(msg)
-                        if self.brain: self.brain.update_config()
-
-            # [E] GOD MODE (Auto-Switch)
-            if "auto_god_mode" in data:
-                state = to_bool(data["auto_god_mode"])
-                cfg.GOD_MODE = state
-                utils.CURRENT_CONFIG["GOD_MODE"] = state
-                if hasattr(self, 'vol_manager'): self.vol_manager.set_auto_mode(state)
-                self.root.after(0, lambda: self._sync_god_ui(state))
-                self.log(f"⚡ REMOTE: God Mode set to {'AUTO' if state else 'OFF'}")
-
-            # [F] TOGGLES (Firewall, Whale, Auto-Rev)
-            if "use_firewall" in data:
-                state = to_bool(data["use_firewall"])
-                cfg.USE_FIREWALL = state
-                utils.CURRENT_CONFIG["USE_FIREWALL"] = state
-                if hasattr(self, 'sw_firewall'):
-                    self.root.after(0, lambda s=state: self.sw_firewall.select() if s else self.sw_firewall.deselect())
-                self.log(f"🛡️ REMOTE: Firewall {'ENABLED' if state else 'DISABLED'}")
-
-            if "use_sr_filter" in data:
-                state = to_bool(data["use_sr_filter"])
-                cfg.USE_SR_FILTER = state
-                utils.CURRENT_CONFIG["USE_SR_FILTER"] = state
-                if hasattr(self, 'sw_whale'):
-                    self.root.after(0, lambda s=state: self.sw_whale.select() if s else self.sw_whale.deselect())
-                self.log(f"🐋 REMOTE: Whale Radar {'ENABLED' if state else 'DISABLED'}")
-
-            if "use_adaptive_reversal" in data:
-                state = to_bool(data["use_adaptive_reversal"])
-                cfg.USE_ADAPTIVE_REVERSAL = state
-                utils.CURRENT_CONFIG["USE_ADAPTIVE_REVERSAL"] = state
-                if hasattr(self, 'sw_rev'):
-                    self.root.after(0, lambda s=state: self.sw_rev.select() if s else self.sw_rev.deselect())
-                self.log(f"🔄 REMOTE: Auto-Rev {'ENABLED' if state else 'DISABLED'}")
-
-            # [G] RECIPE SWITCHING
-            if "recipe" in data:
-                recipe_name = str(data["recipe"])
-                self.log(f"👨‍🍳 REMOTE: Loading Recipe '{recipe_name}'...")
-                self.root.after(0, lambda: self.load_selected_recipe(recipe_name))
-
-            # [H] SCHEDULER UPDATE (Full JSON Overwrite)
-            if "update_schedule" in data:
-                new_schedule = data["update_schedule"] # Expects Dict or List
-                if self.session_manager:
-                    # Save to file
-                    import json
-                    with open(self.session_manager.config_file, 'w', encoding='utf-8') as f:
-                        json.dump(new_schedule, f, indent=4)
-                    
-                    # Reload
-                    self.session_manager.load_schedule()
-                    self.session_manager.check_schedule() # Force check
-                    self.log("📅 REMOTE: Scheduler Rhythm Updated.")
-                    self.mobile_log("📅 REMOTE: Scheduler Updated.")
-
-            # [I] SPECIFIC RISK SETTINGS
-            if "daily_target" in data:
-                try:
-                    target = float(data["daily_target"])
-                    cfg.DAILY_PROFIT_TARGET = target
-                    utils.CURRENT_CONFIG["DAILY_PROFIT_TARGET"] = target
-                    self.daily_target = target
-                    self.log(f"💰 REMOTE: Target set to {target}")
-                except: pass
-
-            # FINAL SYNC
-            self.sync_telemetry()
-            
-            # PUSH ALERT RESPONSES
-            if hasattr(self, 'uplink') and self.uplink:
-                if "is_trading_active" in data: self.uplink.send_push("Ghost Remote", f"Status: {'RUNNING' if to_bool(data['is_trading_active']) else 'PAUSED'}")
-                elif "action" in data and data["action"] == "CLOSE_ALL": self.uplink.send_push("Ghost Remote", "🚨 PANIC EXECUTED")
-                elif "update_config" in data: self.uplink.send_push("Ghost Remote", "⚙️ Config Updated")
-
+            self.ref_system = db.reference(f'users/{self.bot_id}/system/recipes')
+            self.ref_system.set(cookbook)
+            print(f"📜 MANIFEST: Uploaded {len(cookbook)} recipes to Cloud.")
         except Exception as e:
-            self.log(f"❌ Remote Command Error: {e}")
-            self.mobile_log(f"❌ REMOTE ERR: {e}")
-            import traceback
-            traceback.print_exc()
+            print(f"⚠️ MANIFEST UPLOAD FAILED: {e}")
 ```
+
+## 2. Update `dashboard.py`
+**Goal**: Sync recipes on startup/change and handle "Remote Save" commands from the App.
+
+**Action A**: Add `sync_recipes` method to `TradingOS` class.
+```python
+    def sync_recipes(self):
+        """Push local cookbook to mobile app."""
+        if hasattr(self, 'uplink') and self.uplink and hasattr(self, 'cookbook'):
+            self.uplink.broadcast_recipes(self.cookbook)
+            print("📤 Recipes Synced to Mobile.")
+```
+
+**Action B**: Call `sync_recipes` in `start_trading_thread` (after history bootstrap).
+```python
+            # Initial History Sync
+            self.executor.bootstrap_mobile_history(limit=30)
+            # Initial Recipe Sync
+            self.root.after(5000, self.sync_recipes)
+```
+
+**Action C**: Update `handle_remote_command` to handle `save_recipe`.
+Add this block inside `handle_remote_command` (e.g., after the "Recipe Injection" block):
+
+```python
+            # 5. Recipe Save (Remote Editor)
+            if "save_recipe" in data:
+                try:
+                    r_data = data["save_recipe"] # {name: "...", settings: {...}}
+                    name = r_data.get("name")
+                    settings = r_data.get("settings")
+                    
+                    if name and settings and hasattr(self, 'cookbook'):
+                        # Update Cookbook
+                        if name in self.cookbook:
+                            self.cookbook[name].update(settings)
+                        else:
+                            self.cookbook[name] = settings # New Recipe
+                        
+                        # Persist to Disk
+                        import recipes
+                        recipes.save_recipes(self.cookbook)
+                        
+                        # Sync back to cloud (Confirm success)
+                        self.sync_recipes()
+                        
+                        self.mobile_log(f"� REMOTE SAVE: Recipe '{name}' updated.")
+                except Exception as e:
+                     self.mobile_log(f"❌ SAVE ERROR: {e}")
+```
+
+## 3. Telemetry Verification
+Ensure the `broadcast_vitals` method (in `dashboard.py`) includes these keys (The App expects them now):
+- `swarm_mode` (Boolean)
+- `use_firewall` (Boolean)
+- `whale_tracker` (Boolean, maps to USE_SR_FILTER)
+- `auto_rev` (Boolean)
+- `risk_percent` (Float)
+
+*End of Instructions*

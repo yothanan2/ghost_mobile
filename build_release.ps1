@@ -1,4 +1,4 @@
-Write-Host "--- Ghost Command RELEASE BUILD v2.00 (Signed) ---" -ForegroundColor Magenta
+Write-Host "--- Ghost Command RELEASE BUILD v2.01 (Signed) ---" -ForegroundColor Magenta
 
 # 0. Setup
 $scriptDir = $PSScriptRoot
@@ -28,8 +28,8 @@ if (Test-Path $apkPath) {
     Write-Host "SUCCESS: Release APK Generated at:" -ForegroundColor Green
     Write-Host $apkPath -ForegroundColor White
     
-    Copy-Item $apkPath -Destination "$scriptDir\Ghost_v2.00_Release.apk"
-    Write-Host "Copied to Desktop/Ghost_Mobile_App/Ghost_v2.00_Release.apk" -ForegroundColor Green
+    Copy-Item $apkPath -Destination "$scriptDir\Ghost_v2.01_Release.apk"
+    Write-Host "Copied to Desktop/Ghost_Mobile_App/Ghost_v2.01_Release.apk" -ForegroundColor Green
 } else {
     Write-Error "APK NOT FOUND. See build_release_log.txt."
 }

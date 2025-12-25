@@ -1,6 +1,7 @@
 package com.ghostcommand.app
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,7 +17,7 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 
 @Composable
-fun SettingsScreen(database: FirebaseDatabase, botId: String, lang: String) {
+fun SettingsScreen(database: FirebaseDatabase, botId: String, lang: String, vitals: GhostVitals) {
     val cmdRef = database.getReference("users/$botId/commands")
     var selectedTab by remember { mutableStateOf(0) } // 0=STRATEGY, 1=RISK, 2=SCHEDULER
 
@@ -39,12 +40,105 @@ fun SettingsScreen(database: FirebaseDatabase, botId: String, lang: String) {
         // --- CONTENT AREA ---
         when(selectedTab) {
             0 -> StrategyConfig(cmdRef, lang)
-            1 -> RiskVault(cmdRef, lang)
+            1 -> RiskVault(cmdRef, lang, vitals)
             2 -> SchedulerConfig(cmdRef, lang)
         }
     }
 }
 
+// ... SubTabBtn ... Use Reference
+
+// --- TAB 2: RISK VAULT ---
+@Composable
+fun RiskVault(cmdRef: DatabaseReference, lang: String, vitals: GhostVitals) {
+    var targetInput by remember { mutableStateOf("") }
+    
+    // Toggles
+    CyberCard {
+        Column(Modifier.padding(15.dp)) {
+            Text("SAFETY OVERRIDES", color = NeonGreen, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(15.dp))
+            
+            RemoteToggleRow("🔥 FIREWALL", cmdRef, "use_firewall", vitals.use_firewall)
+            Spacer(Modifier.height(10.dp))
+            RemoteToggleRow("🐝 SWARM MODE", cmdRef, "swarm_mode", vitals.swarm_mode)
+            Spacer(Modifier.height(10.dp))
+            RemoteToggleRow("🐋 WHALE RADAR", cmdRef, "use_sr_filter", vitals.whale_tracker)
+            Spacer(Modifier.height(10.dp))
+            RemoteToggleRow("🔄 AUTO-REVERSAL", cmdRef, "use_adaptive_reversal", vitals.auto_rev)
+        }
+    }
+    
+    Spacer(Modifier.height(20.dp))
+    
+    // Daily Target
+    CyberCard {
+        Column(Modifier.padding(15.dp)) {
+            Text("DAILY PROFIT TARGET", color = Gold, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(10.dp))
+            
+            OutlinedTextField(
+                value = targetInput,
+                onValueChange = { targetInput = it },
+                label = { Text("Target Amount ($)", color = Color.Gray) },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Gold,
+                    unfocusedBorderColor = Color.Gray,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+            
+            Spacer(Modifier.height(15.dp))
+            Button(
+                onClick = { 
+                    if (targetInput.isNotEmpty()) {
+                        sendRemoteCmd(cmdRef, mapOf("daily_target" to targetInput.toFloatOrNull()))
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = NeonGreen),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("UPDATE TARGET", color = Color.Black, fontWeight = FontWeight.Bold)
+            }
+            
+            // Current Target Helper
+            Spacer(Modifier.height(5.dp))
+            Text("Current: $${vitals.daily_target}", color = TextDim, fontSize = 10.sp, modifier = Modifier.align(Alignment.End))
+        }
+    }
+}
+
+@Composable
+fun RemoteToggleRow(label: String, cmdRef: DatabaseReference, key: String, isActive: Boolean) {
+    val onColor = if (isActive) Color(0xFF112211) else Color(0xFF111111)
+    val onTxt = if (isActive) NeonGreen else Color.Gray
+    
+    val offColor = if (!isActive) Color(0xFF221111) else Color(0xFF111111)
+    val offTxt = if (!isActive) NeonRed else Color.Gray
+
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+        Text(label, color = Color.White, fontSize = 14.sp)
+        Row {
+            Button(
+                onClick = { sendRemoteCmd(cmdRef, mapOf(key to true)) },
+                colors = ButtonDefaults.buttonColors(containerColor = onColor),
+                modifier = Modifier.height(30.dp).border(1.dp, if(isActive) NeonGreen else Color.Transparent, RoundedCornerShape(50)),
+                contentPadding = PaddingValues(0.dp)
+            ) { Text("ON", color = onTxt, fontSize = 10.sp) }
+            
+            Spacer(Modifier.width(5.dp))
+            
+            Button(
+                onClick = { sendRemoteCmd(cmdRef, mapOf(key to false)) },
+                colors = ButtonDefaults.buttonColors(containerColor = offColor),
+                modifier = Modifier.height(30.dp).border(1.dp, if(!isActive) NeonRed else Color.Transparent, RoundedCornerShape(50)),
+                contentPadding = PaddingValues(0.dp)
+            ) { Text("OFF", color = offTxt, fontSize = 10.sp) }
+        }
+    }
+}
 @Composable
 fun SubTabBtn(text: String, selected: Boolean, onClick: () -> Unit) {
     Button(
@@ -60,44 +154,119 @@ fun SubTabBtn(text: String, selected: Boolean, onClick: () -> Unit) {
     }
 }
 
-// --- TAB 1: STRATEGY (RECIPES) ---
 @Composable
 fun StrategyConfig(cmdRef: DatabaseReference, lang: String) {
-    var recipeInput by remember { mutableStateOf("") }
+    var expanded by remember { mutableStateOf(false) }
+    var selectedRecipe by remember { mutableStateOf("Select Strategy...") }
+    var recipesMap by remember { mutableStateOf<Map<String, Any>>(emptyMap()) }
+    var isLoading by remember { mutableStateOf(true) }
+
+    // Fetch Recipes
+    DisposableEffect(Unit) {
+        val ref = cmdRef.parent?.child("system/recipes")
+        val listener = object : com.google.firebase.database.ValueEventListener {
+            override fun onDataChange(s: com.google.firebase.database.DataSnapshot) {
+                val data = s.value as? Map<String, Any> ?: emptyMap()
+                recipesMap = data
+                isLoading = false
+            }
+            override fun onCancelled(e: com.google.firebase.database.DatabaseError) {}
+        }
+        ref?.addValueEventListener(listener)
+        onDispose { ref?.removeEventListener(listener) }
+    }
     
     CyberCard {
         Column(Modifier.padding(15.dp)) {
-            Text("ACTIVE RECIPE INJECTION", color = NeonGreen, fontWeight = FontWeight.Bold)
+            Text("STRATEGY ENGINE (DYNAMIC)", color = NeonGreen, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(10.dp))
-            Text("Enter the exact recipe ID to hot-swap the strategy engine.", color = TextDim, fontSize = 12.sp)
+            Text(if (isLoading) "Downloading Manifest..." else "${recipesMap.size} Recipes Available", color = TextDim, fontSize = 12.sp)
             Spacer(Modifier.height(15.dp))
             
-            OutlinedTextField(
-                value = recipeInput,
-                onValueChange = { recipeInput = it },
-                label = { Text("Recipe ID (e.g. SCALPER_V2)", color = Color.Gray) },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = NeonGreen,
-                    unfocusedBorderColor = Color.Gray,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
+            // DROPDOWN MENU
+            Box(Modifier.fillMaxWidth().wrapContentSize(Alignment.TopStart)) {
+                Button(
+                    onClick = { expanded = true },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF222222)),
+                    modifier = Modifier.fillMaxWidth().height(50.dp).border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
+                ) {
+                    Text(selectedRecipe, color = Color.White)
+                }
+                
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.background(Color(0xFF222222))
+                ) {
+                    recipesMap.keys.sorted().forEach { name ->
+                        DropdownMenuItem(
+                            text = { Text(name, color = Color.White) },
+                            onClick = { 
+                                selectedRecipe = name
+                                expanded = false 
+                            }
+                        )
+                    }
+                }
+            }
             
             Spacer(Modifier.height(15.dp))
             
+            // ACTIONS
             Button(
                 onClick = { 
-                    if (recipeInput.isNotEmpty()) {
-                        sendRemoteCmd(cmdRef, mapOf("recipe" to recipeInput))
-                        recipeInput = "" // Clear
+                    if (recipesMap.containsKey(selectedRecipe)) {
+                        sendRemoteCmd(cmdRef, mapOf("recipe" to selectedRecipe))
                     }
                 },
+                enabled = recipesMap.containsKey(selectedRecipe),
                 colors = ButtonDefaults.buttonColors(containerColor = Gold),
                 modifier = Modifier.fillMaxWidth().height(50.dp)
             ) {
-                Text("INJECT RECIPE", color = Color.Black, fontWeight = FontWeight.Bold)
+                Text("INJECT & RUN", color = Color.Black, fontWeight = FontWeight.Bold)
+            }
+            
+            // QUICK EDITOR
+            if (recipesMap.containsKey(selectedRecipe)) {
+                val rData = recipesMap[selectedRecipe] as? Map<String, Any> ?: emptyMap()
+                var editRisk by remember(selectedRecipe) { mutableStateOf(rData["RISK_PERCENT"]?.toString() ?: "0.0") }
+                var editLot by remember(selectedRecipe) { mutableStateOf(rData["LOT_SIZE"]?.toString() ?: "0.01") }
+                var editSL by remember(selectedRecipe) { mutableStateOf(rData["STOP_LOSS"]?.toString() ?: "3.0") }
+                var editTP by remember(selectedRecipe) { mutableStateOf(rData["TAKE_PROFIT"]?.toString() ?: "6.0") }
+                
+                Spacer(Modifier.height(20.dp))
+                Divider(color = Color.Gray, thickness = 1.dp)
+                Spacer(Modifier.height(10.dp))
+                Text("QUICK TWEAK", color = NeonBlue, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                
+                Row(Modifier.fillMaxWidth()) {
+                    OutlinedTextField(value = editRisk, onValueChange = { editRisk = it }, label = { Text("Risk %") }, modifier = Modifier.weight(1f), colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White))
+                    Spacer(Modifier.width(10.dp))
+                    OutlinedTextField(value = editLot, onValueChange = { editLot = it }, label = { Text("Lot Size") }, modifier = Modifier.weight(1f), colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White))
+                }
+                Row(Modifier.fillMaxWidth()) {
+                    OutlinedTextField(value = editSL, onValueChange = { editSL = it }, label = { Text("SL ($)") }, modifier = Modifier.weight(1f), colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White))
+                    Spacer(Modifier.width(10.dp))
+                    OutlinedTextField(value = editTP, onValueChange = { editTP = it }, label = { Text("TP ($)") }, modifier = Modifier.weight(1f), colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White))
+                }
+                
+                Spacer(Modifier.height(10.dp))
+                Button(
+                    onClick = {
+                        val settings = mapOf(
+                            "RISK_PERCENT" to (editRisk.toDoubleOrNull() ?: 0.0),
+                            "LOT_SIZE" to (editLot.toDoubleOrNull() ?: 0.01),
+                            "STOP_LOSS" to (editSL.toDoubleOrNull() ?: 0.0),
+                            "TAKE_PROFIT" to (editTP.toDoubleOrNull() ?: 0.0)
+                        )
+                        val payload = mapOf("save_recipe" to mapOf("name" to selectedRecipe, "settings" to settings))
+                        sendRemoteCmd(cmdRef, payload)
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF333333)),
+                    modifier = Modifier.fillMaxWidth().height(40.dp)
+                ) {
+                    Text("SAVE CHANGES", color = Color.White)
+                }
             }
         }
     }
@@ -205,13 +374,13 @@ fun SchedulerConfig(cmdRef: DatabaseReference, lang: String) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Button(
                     onClick = { 
-                         // Deep Config Update to set Mode
-                         val pl = mapOf("update_config" to mapOf("MODE_NAME" to "AUTO-SCHEDULER"))
+                         // [RHYTHM] Inject the Auto-Pilot Recipe
+                         val pl = mapOf("recipe" to "0000: Auto-Scheduler (Sync)")
                          sendRemoteCmd(cmdRef, pl)
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = NeonBlue),
                     modifier = Modifier.weight(1f)
-                ) { Text("ENABLE AUTO", color = Color.Black) }
+                ) { Text("ENGAGE AUTO", color = Color.Black, fontWeight = FontWeight.Bold) }
                 
                 Spacer(Modifier.width(10.dp))
                 
