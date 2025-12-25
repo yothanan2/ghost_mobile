@@ -20,11 +20,11 @@ def trigger_update():
 
     # 2. Define Update Payload
     version_data = {
-        "code": 7,                  # Match build.gradle versionCode
-        "name": "1.6",              # Display Name
-        "mandatory": True,          # Force Update?
-        "changelog": "⚠️ CRITICAL UPGRADE: Full Remote Control Enabled.\n- Settings Tab Added\n- Remote Bot Config\n- Recipe Injection\n- Risk Vault\n- Scheduler Control",
-        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v1.6/Ghost_v1.6_Release.apk"
+        "code": 8,                  
+        "name": "1.7",              
+        "mandatory": True,          
+        "changelog": "🔥 HOTFIX v1.7: Fixed 'App not installed' error.\n- Signed Release APK\n- Full Remote Control Features",
+        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v1.7/Ghost_v1.7_Release.apk"
     }
 
     # 3. Push to 'system/version' (Correct Path per MainActivity.kt)

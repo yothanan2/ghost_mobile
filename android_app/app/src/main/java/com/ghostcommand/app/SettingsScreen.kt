@@ -117,6 +117,8 @@ fun RiskVault(cmdRef: DatabaseReference, lang: String) {
             
             RemoteToggleRow("🔥 FIREWALL", cmdRef, "use_firewall")
             Spacer(Modifier.height(10.dp))
+            RemoteToggleRow("🐝 SWARM MODE", cmdRef, "swarm_mode")
+            Spacer(Modifier.height(10.dp))
             RemoteToggleRow("🐋 WHALE RADAR", cmdRef, "use_sr_filter")
             Spacer(Modifier.height(10.dp))
             RemoteToggleRow("🔄 AUTO-REVERSAL", cmdRef, "use_adaptive_reversal")
