@@ -103,3 +103,47 @@ Ensure that `mode_name` accurately reflects the "PAUSE" state if the Scheduler o
     }
 ```
 **CRITICAL**: The App looks for the string `"PAUSE"` (case-sensitive) to show the "Resume" UI.
+
+## 5. [NEW] v2.07 Feature Support (Ghost Terminal, Chart, News)
+**Goal**: Power the new "Ghost" features with real-time data.
+
+### A. Ghost Terminal (Log Stream)
+**Action**: Update `mobile_log` (or `log`) function in `dashboard.py`.
+**Logic**: Push the last log message to Firebase, but keep a circular buffer (last 1 msg is fine, App appends history, or replace a list).
+**Recommended**: Fire-and-forget push of the *raw text line*.
+```python
+    # In mobile_log(msg):
+    # Payload: {"ts": timestamp, "msg": msg, "type": "INFO/ERROR"}
+    self.uplink.ref_logs.push(payload) # Use push() for stream, or limit to last 50 via set()
+```
+*Note: To save bandwidth, maybe just set a single "latest_log" node and let App listen.*
+
+### B. Ghost Chart (Live Data Packet)
+**Action**: In `scan()` loop (inside `execution_engine.py` or where `brain.analyze()` happens).
+**Frequency**: Every 1 second (or matching `SCAN_INTERVAL`).
+**Condition**: ONLY if `active_trade` is not None.
+**Payload**: `users/{bot_id}/live_chart`
+```json
+{
+  "price": 2045.50,
+  "candle": {"o":.., "h":.., "l":.., "c":..}, # Current forming candle
+  "lines": {
+      "entry": 2045.00,
+      "sl": 2042.00,
+      "tp": 2048.00
+  }
+}
+```
+
+### C. News Radar
+**Action**: Update `news_manager.check_news()`.
+**Payload**: Inject into `system/vitals`:
+```json
+"news": {
+    "next_event": "CPI (USD)",
+    "time_in_minutes": 45,
+    "impact": "HIGH"
+}
+```
+
+*End of Instructions*

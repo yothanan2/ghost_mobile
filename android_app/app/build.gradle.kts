@@ -12,8 +12,8 @@ android {
         applicationId = "com.ghostcommand.app"
         minSdk = 24
         targetSdk = 34
-        versionCode = 26
-        versionName = "2.06"
+        versionCode = 27
+        versionName = "2.07"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -71,6 +71,7 @@ dependencies {
     implementation("com.google.firebase:firebase-database")
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-messaging-ktx:23.4.0")
+    implementation("androidx.biometric:biometric:1.1.0") // [NEW] Bio Lock
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

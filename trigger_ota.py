@@ -20,17 +20,18 @@ def trigger_update():
 
     # 2. Define Update Payload
     version_data = {
-        "code": 26,                 
-        "name": "2.06",             
+        "code": 27,                 
+        "name": "2.07",             
         "mandatory": False,          
-        "changelog": "👻 UPDATE v2.06: Ghost RC\n- Renamed to 'Ghost RC'.\n- Added Holiday/Pause Support.\n- Visual Tweaks.",
+        "changelog": "📈 UPDATE v2.07: Ghost Visualizer\n- Ghost Chart: Real-time Price & Lines.\n- News Radar: Economic Event Warnings.\n- Performance Optimizations.",
         "changelog_map": {
-            "en": "👻 UPDATE v2.06: Ghost RC\n- Renamed to 'Ghost RC'.\n- Added Holiday/Pause Support.\n- Visual Tweaks.",
-            "th": "👻 อัปเดต v2.06: Ghost RC\n- เปลี่ยนชื่อแอปเป็น Ghost\n- รองรับโหมดวันหยุด",
-            "ru": "👻 ОБНОВЛЕНИЕ v2.06: Ghost RC\n- Новое имя: Ghost\n- Поддержка режима паузы",
-            "es": "👻 ACTUALIZACIÓN v2.06: Ghost RC\n- Nuevo nombre: Ghost\n- Soporte para modo pausa"
+            "en": "📈 UPDATE v2.07: Ghost Visualizer\n- Ghost Chart: Real-time Price & Lines.\n- News Radar: Economic Event Warnings.\n- Performance Optimizations.",
+            "th": "📈 อัปเดต v2.07: กราฟเรียลไทม์\n- แสดงกราฟราคาและเส้น Entry/SL/TP\n- แจ้งเตือนข่าวเศรษฐกิจ",
+            "ru": "📈 ОБНОВЛЕНИЕ v2.07: Визуализация\n- Живой график и новости",
+            "es": "📈 ACTUALIZACIÓN v2.07: Visualizador\n- Gráfico en tiempo real y Noticias"
         },
-        "url": "https://github.com/yothanan2/ghost_mobile/raw/master/Ghost_v2.06_Release.apk"
+        # USE RELEASES URL (STABLE) INSTEAD OF RAW
+        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.07/Ghost_v2.07_Release.apk"
     }
 
     # 3. Push to 'system/version' (Correct Path per MainActivity.kt)
