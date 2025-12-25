@@ -20,17 +20,17 @@ def trigger_update():
 
     # 2. Define Update Payload
     version_data = {
-        "code": 24,                 
-        "name": "2.04",             
+        "code": 25,                 
+        "name": "2.05",             
         "mandatory": False,          
-        "changelog": "🔧 HOTFIX v2.04: Notification Label Fix.\n- Fixed 'v1.4' showing in download manager.\n- Future updates will show correct version.",
+        "changelog": "🚀 UPDATE v2.05: Dashboard Evolved.\n- Engine Controls moved to Home Screen.\n- Settings Menu streamlined.\n- UI Enhancements.",
         "changelog_map": {
-            "en": "🔧 HOTFIX v2.04: Notification Label Fix.\n- Fixed 'v1.4' showing in download manager.\n- Future updates will show correct version.",
-            "th": "🔧 แก้ไข v2.04: แก้ชื่อการแจ้งเตือน\n- แก้ไขที่แสดงผิดเป็น 'v1.4'",
-            "ru": "🔧 ИСПРАВЛЕНИЕ v2.04: Исправление ярлыка\n- Исправлено отображение 'v1.4'",
-            "es": "🔧 CORRECCIÓN v2.04: Etiqueta de Notificación\n- Se corrigió 'v1.4' en la descarga"
+            "en": "🚀 UPDATE v2.05: Dashboard Evolved.\n- Engine Controls moved to Home Screen.\n- Settings Menu streamlined.\n- UI Enhancements.",
+            "th": "🚀 อัปเดต v2.05: ปรับปรุงล่าสุด\n- ย้ายปุ่มควบคุมไปหน้าหลัก\n- จัดระเบียบเมนูตั้งค่า",
+            "ru": "🚀 ОБНОВЛЕНИЕ v2.05: Эволюция Панели\n- Управление движком на главном экране",
+            "es": "🚀 ACTUALIZACIÓN v2.05: Panel Evolucionado\n- Controles del motor en la pantalla de inicio"
         },
-        "url": "https://github.com/yothanan2/ghost_mobile/raw/master/Ghost_v2.04_Release.apk"
+        "url": "https://github.com/yothanan2/ghost_mobile/raw/master/Ghost_v2.05_Release.apk"
     }
 
     # 3. Push to 'system/version' (Correct Path per MainActivity.kt)

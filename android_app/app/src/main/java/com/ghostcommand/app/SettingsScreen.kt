@@ -33,8 +33,6 @@ fun SettingsScreen(database: FirebaseDatabase, botId: String, lang: String, vita
             SubTabBtn("STRATEGY", selectedTab == 0) { selectedTab = 0 }
             Spacer(Modifier.width(8.dp))
             SubTabBtn("RISK VAULT", selectedTab == 1) { selectedTab = 1 }
-            Spacer(Modifier.width(8.dp))
-            SubTabBtn("RHYTHM", selectedTab == 2) { selectedTab = 2 }
         }
         
         Spacer(Modifier.height(20.dp))
@@ -43,7 +41,6 @@ fun SettingsScreen(database: FirebaseDatabase, botId: String, lang: String, vita
         when(selectedTab) {
             0 -> StrategyConfig(cmdRef, lang)
             1 -> RiskVault(cmdRef, lang, vitals)
-            2 -> SchedulerConfig(cmdRef, lang)
         }
     }
 }
@@ -419,58 +416,7 @@ fun RemoteToggleRow(label: String, cmdRef: DatabaseReference, key: String) {
 
 
 // --- TAB 3: SCHEDULER ---
-@Composable
-fun SchedulerConfig(cmdRef: DatabaseReference, lang: String) {
-    CyberCard {
-        Column(Modifier.padding(15.dp)) {
-            Text("BATTLE RHYTHM (SCHEDULER)", color = NeonBlue, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(10.dp))
-            Text("Enable or Disable the Auto-Scheduler engine.", color = TextDim, fontSize = 12.sp)
-            Spacer(Modifier.height(20.dp))
-            
-            // Re-using the toggle row logic logic but custom for scheduler mode concept
-            // Assuming we map Scheduler "ON" to MODE_NAME="AUTO-SCHEDULER" or similar
-            // But for now, we'll just use a generic config key if we had one.
-            // Let's use deep config update for MODE_NAME
-            
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Button(
-                    onClick = { 
-                         // [RHYTHM] Inject the Auto-Pilot Recipe
-                         val pl = mapOf("recipe" to "0000: Auto-Scheduler (Sync)")
-                         sendRemoteCmd(cmdRef, pl)
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = NeonBlue),
-                    modifier = Modifier.weight(1f)
-                ) { Text("ENGAGE AUTO", color = Color.Black, fontWeight = FontWeight.Bold) }
-                
-                Spacer(Modifier.width(10.dp))
-                
-                Button(
-                    onClick = { 
-                         // Deep Config Update to set Mode to Manual
-                         val pl = mapOf("update_config" to mapOf("MODE_NAME" to "MANUAL"))
-                         sendRemoteCmd(cmdRef, pl)
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF333333)),
-                    modifier = Modifier.weight(1f)
-                ) { Text("MANUAL MODE", color = Color.White) }
-            }
-            
-            Spacer(Modifier.height(30.dp))
-            Text("SYSTEM OVERRIDES", color = NeonRed, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(10.dp))
-            
-            Button(
-                onClick = { sendRemoteCmd(cmdRef, mapOf("action" to "RESTART")) },
-                colors = ButtonDefaults.buttonColors(containerColor = NeonRed),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("⚠️ FORCE REBOOT SYSTEM", color = Color.White, fontWeight = FontWeight.Bold)
-            }
-        }
-    }
-}
+// [REMOVED] SchedulerConfig (Moved to Dashboard in v2.05)
 
 // --- HELPER COMPONENT IF NOT ACCESSIBLE ---
 // Just in case CyberCard isn't public, we'll assume it is. 

@@ -550,11 +550,38 @@ fun TacticalDashboard(database: com.google.firebase.database.FirebaseDatabase, b
         // 6. PANIC BUTTON
         Button(
             onClick = { cmdRef.push().setValue(mapOf("action" to "CLOSE_ALL")) },
-            colors = ButtonDefaults.buttonColors(containerColor = NeonRed), // [UI FIX] Solid Red
+            colors = ButtonDefaults.buttonColors(containerColor = NeonRed),
             modifier = Modifier.fillMaxWidth().height(50.dp),
             shape = RoundedCornerShape(8.dp)
         ) {
-            Text(TR("CLOSE_ALL", lang), color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            // [UI FIX] 90% White (0xE6 is approx 90% of 255)
+            Text(TR("CLOSE_ALL", lang), color = Color(0xE6FFFFFF), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // 7. ENGINE CONTROL (Moved from Rhythm Tab)
+        val isManual = vitals.mode_name == "MANUAL"
+        val engineColor = if (isManual) NeonGreen else NeonRed
+        val engineText = if (isManual) "TURN ON" else "TURN OFF" // [UI REQUEST]
+
+        Button(
+            onClick = { 
+                if (isManual) {
+                     // TURN ON -> Engage Auto-Scheduler
+                     val pl = mapOf("recipe" to "0000: Auto-Scheduler (Sync)")
+                     cmdRef.push().setValue(mapOf("payload" to pl))
+                } else {
+                     // TURN OFF -> Manual Mode
+                     val pl = mapOf("update_config" to mapOf("MODE_NAME" to "MANUAL"))
+                     cmdRef.push().setValue(mapOf("payload" to pl))
+                }
+            },
+            colors = ButtonDefaults.buttonColors(containerColor = engineColor),
+            modifier = Modifier.fillMaxWidth().height(50.dp),
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Text(engineText, color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
