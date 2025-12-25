@@ -302,6 +302,7 @@ fun MainScreen(botId: String, lang: String, onToggleLang: () -> Unit, onLogout: 
                 0 -> TacticalDashboard(database, botId, onLogout, lang, onToggleLang)
                 1 -> NeuralStream(database, botId, lang)
                 2 -> DailyHistory(database, botId, lang)
+                3 -> SettingsScreen(database, botId, lang)
             }
         }
         
@@ -314,6 +315,7 @@ fun MainScreen(botId: String, lang: String, onToggleLang: () -> Unit, onLogout: 
             TabButton(TR("DASHBOARD", lang), selected = selectedTab == 0) { selectedTab = 0 }
             TabButton(TR("NEURAL_STREAM", lang), selected = selectedTab == 1) { selectedTab = 1 }
             TabButton(TR("HISTORY", lang), selected = selectedTab == 2) { selectedTab = 2 }
+            TabButton("SETTINGS", selected = selectedTab == 3) { selectedTab = 3 }
         }
     }
 }
