@@ -9,7 +9,7 @@ $gradleCmd = $gradleDistBin # Assuming it exists now
 Set-Location "$scriptDir\android_app"
 Write-Host "Building (clean installDebug --info)... Logging to build_log.txt" -ForegroundColor Cyan
 
-& $gradleCmd clean installDebug --info 2>&1 | Out-File -FilePath "build_log.txt" -Encoding UTF8
+& $gradleCmd clean assembleDebug --info 2>&1 | Out-File -FilePath "build_log.txt" -Encoding UTF8
 
 # 3. Check Log for errors
 if (Select-String -Path "build_log.txt" -Pattern "BUILD FAILED") {

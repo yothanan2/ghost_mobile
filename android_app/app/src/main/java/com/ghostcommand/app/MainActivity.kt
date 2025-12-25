@@ -736,58 +736,12 @@ fun CheckForUpdates(database: com.google.firebase.database.FirebaseDatabase, con
 
 fun downloadAndInstallUpdate(context: Context, url: String) {
     try {
-        val fileName = "ghost_update_${System.currentTimeMillis()}.apk"
-        val request = DownloadManager.Request(Uri.parse(url))
-            .setTitle("Ghost Upgrade")
-            .setDescription("Downloading protocol patch...")
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-            .setDestinationInExternalFilesDir(context, Environment.DIRECTORY_DOWNLOADS, fileName) // Use App Private storage for easy FileProvider access
-            .setMimeType("application/vnd.android.package-archive")
-
-        val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        val downloadId = dm.enqueue(request)
-
-        Toast.makeText(context, "⬇️ Initializing Download...", Toast.LENGTH_SHORT).show()
-
-        // REGISTER RECEIVER (One-off)
-        // Note: For a robust app, this should be in a Service or ViewModel, but Composable side-effect works for this scope.
-        val onComplete = object : android.content.BroadcastReceiver() {
-            override fun onReceive(ctxt: Context, intent: Intent) {
-                 val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
-                 if (id == downloadId) {
-                     installApk(ctxt, id)
-                 }
-            }
-        }
-        ContextCompat.registerReceiver(
-            context, 
-            onComplete, 
-            android.content.IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE), 
-            ContextCompat.RECEIVER_EXPORTED
-        )
-        
+        Toast.makeText(context, "🌐 Opening Browser for Update...", Toast.LENGTH_SHORT).show()
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
     } catch (e: Exception) {
-        Toast.makeText(context, "❌ Update Failure: ${e.message}", Toast.LENGTH_LONG).show()
+        Toast.makeText(context, "❌ Error opening link: ${e.message}", Toast.LENGTH_LONG).show()
     }
 }
 
-fun installApk(context: Context, downloadId: Long) {
-    try {
-        val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        val uri = dm.getUriForDownloadedFile(downloadId)
-        if (uri != null) {
-            // Need to map this to a content URI via FileProvider if strictly private, 
-            // but DownloadManager usually gives a content:// uri if designed right. 
-            // However, with setDestinationInExternalFilesDir, we need to be careful.
-            
-            // SIMPLER PATH: Trigger VIEW intent with permission
-            val intent = Intent(Intent.ACTION_VIEW)
-            intent.setDataAndType(uri, "application/vnd.android.package-archive")
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) // Needed when calling from non-Activity context
-            context.startActivity(intent)
-        }
-    } catch (e: Exception) {
-        Toast.makeText(context, "❌ Install Failure: ${e.message}", Toast.LENGTH_LONG).show()
-    }
-}
