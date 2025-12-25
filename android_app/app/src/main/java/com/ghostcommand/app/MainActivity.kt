@@ -3,11 +3,14 @@ package com.ghostcommand.app
 import android.content.Context
 import android.os.Bundle
 import androidx.fragment.app.FragmentActivity
+import androidx.activity.ComponentActivity
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
+import androidx.activity.compose.setContent
 import java.security.MessageDigest
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.*
@@ -153,7 +156,6 @@ object GhostLingo {
         "CONNECT_BTN" to "ESTABLISH LINK",
         "LANG_TOGGLE" to "🇺🇸 EN",
         "GOD_MODE_AUTO" to "⚡ GOD MODE: AUTO",
-        "GOD_MODE_AUTO" to "⚡ GOD MODE: AUTO",
         "GOD_MODE_OFF" to "🛡️ SAFE ESCAPE (OFF)",
         "EQ_LABEL" to "EQ"
     )
@@ -207,7 +209,7 @@ class MainActivity : FragmentActivity() {
         // Require Biometric/PIN on Launch
         authenticate(this) { success ->
              if (success) {
-                 setContent { GhostAppEntryPoint() }
+                  setContent { GhostAppEntryPoint() }
              } else {
                  Toast.makeText(this, "Authentication Failed. App Locked.", Toast.LENGTH_LONG).show()
                  finish() // Close App
@@ -349,7 +351,7 @@ fun LoginScreen(lang: String, onToggleLang: () -> Unit, onLogin: (String) -> Uni
             )
 
             if (statusMsg.isNotEmpty()) {
-                Text(statusMsg, color = NeonRed, fontSize = 12.sp, modifier = Modifier.padding(to = 10.dp))
+                Text(statusMsg, color = NeonRed, fontSize = 12.sp, modifier = Modifier.padding(top = 10.dp))
             }
             
             Spacer(modifier = Modifier.height(20.dp))

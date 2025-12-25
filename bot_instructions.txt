@@ -176,3 +176,28 @@ In `broadcast_vitals` or `on_startup`:
     print(f"🔐 SECURITY: Ghost Key Hashed & Uploaded.")
 ```
 **CRITICAL**: Without this hash at `system/auth/pin_hash`, the v2.08 App will REFUSE to connect.
+
+## 7. [MISSION] 25,000 THB CHALLENGE CALIBRATION (VPS ONLY)
+**Goal**: Optimize the bot for the THB-denominated challenge.
+
+### Part A: `config.py` (Base Parameters)
+Set the following unique identification and targeting values:
+- `MAGIC_NUMBER = 777888` (Isolate from Local bot)
+- `INSTANCE_NAME = "VPS_THB_COMMAND"`
+- `DAILY_PROFIT_TARGET = 1500.0` (THB Target)
+
+### Part B: `ai_supervisor.py` (Model Constraints)
+Update the `CONSTRAINTS` section in the AI prompt to reflect scaling capabilities:
+- `MAX TRADES: 3 (Scaling Enabled)`
+
+### Part C: `execution_engine.py` (Logic Refinement)
+1. **Filtering**: In `execute_trade`, ensure you filter positions using the unique Magic Number:
+   `my_pos = [p for p in positions if p.magic == cfg.MAGIC_NUMBER]`
+2. **Initialization**: Ensure `self.fx = CurrencyAdapter()` is correctly initialized in `RiskManager.__init__`.
+
+### Part D: VPS Deployment Flow
+1. **Save Legacy State**: `git checkout -b usd-legacy-hold && git push origin usd-legacy-hold`
+2. **Switch to Challenge Branch**: `git checkout thb-challenge` (Verify your branch name)
+3. **Launch Bot**: Verify that the "Neural Stream" is appearing on your new Android App (v2.08).
+
+*End of MISSION Instructions*
