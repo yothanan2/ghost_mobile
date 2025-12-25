@@ -738,13 +738,74 @@ fun CheckForUpdates(database: com.google.firebase.database.FirebaseDatabase, con
 }
 
 fun downloadAndInstallUpdate(context: Context, url: String) {
+    // 1. Check Permission to Install Packages (Android 8+)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (!context.packageManager.canRequestPackageInstalls()) {
+            Toast.makeText(context, "⚠️ Permission Required: Allow Ghost to install updates.", Toast.LENGTH_LONG).show()
+            val intent = Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES)
+            intent.data = Uri.parse("package:${context.packageName}")
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            return
+        }
+    }
+
     try {
-        Toast.makeText(context, "🌐 Opening Browser for Update...", Toast.LENGTH_SHORT).show()
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        context.startActivity(intent)
+        val fileName = "ghost_update_${System.currentTimeMillis()}.apk"
+        val request = DownloadManager.Request(Uri.parse(url))
+            .setTitle("Ghost Upgrade v1.4")
+            .setDescription("Downloading protocol patch...")
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            .setDestinationInExternalFilesDir(context, Environment.DIRECTORY_DOWNLOADS, fileName)
+            .setMimeType("application/vnd.android.package-archive")
+
+        val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        val downloadId = dm.enqueue(request)
+
+        Toast.makeText(context, "⬇️ DOWNLOADING UPDATE... (Stay here)", Toast.LENGTH_LONG).show()
+
+        // 2. Register Receiver for Completion
+        val onComplete = object : android.content.BroadcastReceiver() {
+            override fun onReceive(ctxt: Context, intent: Intent) {
+                 val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
+                 if (id == downloadId) {
+                     installApk(ctxt, id, fileName)
+                     context.unregisterReceiver(this) // Clean up
+                 }
+            }
+        }
+        ContextCompat.registerReceiver(
+            context, 
+            onComplete, 
+            android.content.IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE), 
+            ContextCompat.RECEIVER_EXPORTED
+        )
+        
     } catch (e: Exception) {
-        Toast.makeText(context, "❌ Error opening link: ${e.message}", Toast.LENGTH_LONG).show()
+        Toast.makeText(context, "❌ Update Failure: ${e.message}", Toast.LENGTH_LONG).show()
+    }
+}
+
+fun installApk(context: Context, downloadId: Long, fileName: String) {
+    try {
+        // We know where we put it: specific file in ExternalFilesDir/Download
+        val file = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), fileName)
+        
+        if (file.exists()) {
+            val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
+            
+            val intent = Intent(Intent.ACTION_VIEW)
+            intent.setDataAndType(uri, "application/vnd.android.package-archive")
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            
+            Toast.makeText(context, "📦 Launching Installer...", Toast.LENGTH_SHORT).show()
+            context.startActivity(intent)
+        } else {
+             Toast.makeText(context, "❌ File not found after download.", Toast.LENGTH_SHORT).show()
+        }
+    } catch (e: Exception) {
+        Toast.makeText(context, "❌ Install Failure: ${e.message}", Toast.LENGTH_LONG).show()
     }
 }
 
