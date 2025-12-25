@@ -1,34 +1,167 @@
-ATTENTION PYTHON AGENT:
+# INSTRUCTIONS FOR VPS AGENT
 
-PART 1: HISTORY FIX (PRIORITY)
-The user is reporting that closed trades are NOT appearing in the "History" tab of the Android App.
-Your codebase likely has a logic gap where it closes a trade but forgets to call the uplink.
-SEARCH for your trade closure logic (e.g., `trade.msg` or `order_close`) and ADD the `broadcast_trade` call.
+# [CRITICAL] PRE-REQUISITE ACTION: BACKUP
+# Before applying any changes, please create a full backup of the current bot folder.
+# The bot is currently HEALTHY and FUNCTIONING.
+# Suggested Backup Name: "pre-ghost app admin remote control"
+# ---------------------------------------------------------
 
-# Inside execution.py or similar:
-if result.retcode == mt5.TRADE_RETCODE_DONE:
-    print(f"Trade Closed: {symbol} Profit: {profit}")
-    # MUST CALL THIS:
-    uplink.broadcast_trade(symbol, type, profit)
+# TARGET FILE: dashboard.py
 
+Please replace the entire `handle_remote_command` method in `dashboard.py` with the following code. 
+This update adds **FULL REMOTE CONTROL** capabilities, including Scheduler JSON updates and Deep Config modification.
 
-PART 2: GOD MODE TOGGLE (NEW FEATURE)
-The App now sends a new command: `UPDATE_CONFIG`.
-You must update your `telemetry_bridge.py` or command handler in `main.py` to process this.
+```python
+    def handle_remote_command(self, cmd_data):
+        """
+        Executes commands received from Firebase (Mobile App).
+        Supports: Config updates, Mode switches, Panic, Engine control, and File Overwrites.
+        """
+        if not cmd_data: return
+        
+        # Helper for boolean conversion
+        def to_bool(v):
+            if isinstance(v, bool): return v
+            return str(v).lower() in ("true", "1", "yes", "on")
 
-# COMMAND FORMAT RECEVIED:
-# {
-#   "command": "UPDATE_CONFIG",
-#   "payload": { "auto_god_mode": true/false }
-# }
+        try:
+            # 1. Extract the primary data
+            data = cmd_data.get("payload", {})
+            if not data: return
+            
+            # 2. [FIX] Handle Nested Payloads (Some apps nest payload inside payload)
+            inner_payload = data.get("payload", {})
+            if isinstance(inner_payload, dict):
+                data.update(inner_payload)
 
-# IMPLEMENTATION GUIDE:
-1. In your command listener (likely in `main.py` or `telemetry_bridge.py`):
-   if command == "UPDATE_CONFIG" or (isinstance(command, dict) and command.get('command') == 'UPDATE_CONFIG'):
-       new_config = command['payload']
-       if 'auto_god_mode' in new_config:
-           cfg.GOD_MODE = new_config['auto_god_mode']
-           print(f"⚡ REMOTE: God Mode Auto-Switch set to {cfg.GOD_MODE}")
+            # --- COMMAND HANDLERS ---
+            
+            # [A] ENGINE START/STOP (Pause/Resume)
+            if "is_trading_active" in data:
+                state = to_bool(data["is_trading_active"])
+                current_state = utils.CURRENT_CONFIG.get("IS_TRADING_ACTIVE", True)
+                if current_state != state:
+                    self.toggle_pause(reason="REMOTE")
 
-2. Ensure your Bot Logic (`brain.py` or `execution.py`) RESPECTS `cfg.GOD_MODE`.
-   - If `cfg.GOD_MODE` is False, DO NOT enter aggressive modes even if Volatility is high.
+            # [B] PANIC BUTTON
+            if "action" in data:
+                act = data["action"]
+                if act == "CLOSE_ALL":
+                    self.log("🚨 REMOTE PANIC RECEIVED: CLOSING ALL TRADES")
+                    self.mobile_log("🚨 REMOTE: PANIC EXECUTION")
+                    self.executor.close_all_panic()
+                elif act == "RESTART":
+                     self.uplink.send_log("⚡ REMOTE: REBOOTING SYSTEM...")
+                     self.hard_reboot()
+
+            # [C] SWARM MODE
+            if "swarm_mode" in data:
+                state = to_bool(data["swarm_mode"])
+                status_msg = self.swarm.activate(state)
+                self.root.after(0, lambda: self._sync_swarm_ui(state))
+                self.log(status_msg)
+                
+            # [D] DEEP CONFIG UPDATE (Generic Handler)
+            if "update_config" in data:
+                # Expects a dict of KEY: VALUE pairs to overwrite in config.py
+                changes = data["update_config"]
+                if isinstance(changes, dict):
+                    count = 0
+                    for key, val in changes.items():
+                        if hasattr(cfg, key):
+                            # Convert types if necessary (basic types)
+                            current_val = getattr(cfg, key)
+                            if isinstance(current_val, float): val = float(val)
+                            elif isinstance(current_val, int): val = int(val)
+                            elif isinstance(current_val, bool): val = to_bool(val)
+                            
+                            setattr(cfg, key, val)
+                            utils.CURRENT_CONFIG[key] = val
+                            count += 1
+                    
+                    if count > 0:
+                        msg = f"⚙️ REMOTE: Updated {count} config settings."
+                        self.log(msg)
+                        self.mobile_log(msg)
+                        if self.brain: self.brain.update_config()
+
+            # [E] GOD MODE (Auto-Switch)
+            if "auto_god_mode" in data:
+                state = to_bool(data["auto_god_mode"])
+                cfg.GOD_MODE = state
+                utils.CURRENT_CONFIG["GOD_MODE"] = state
+                if hasattr(self, 'vol_manager'): self.vol_manager.set_auto_mode(state)
+                self.root.after(0, lambda: self._sync_god_ui(state))
+                self.log(f"⚡ REMOTE: God Mode set to {'AUTO' if state else 'OFF'}")
+
+            # [F] TOGGLES (Firewall, Whale, Auto-Rev)
+            if "use_firewall" in data:
+                state = to_bool(data["use_firewall"])
+                cfg.USE_FIREWALL = state
+                utils.CURRENT_CONFIG["USE_FIREWALL"] = state
+                if hasattr(self, 'sw_firewall'):
+                    self.root.after(0, lambda s=state: self.sw_firewall.select() if s else self.sw_firewall.deselect())
+                self.log(f"🛡️ REMOTE: Firewall {'ENABLED' if state else 'DISABLED'}")
+
+            if "use_sr_filter" in data:
+                state = to_bool(data["use_sr_filter"])
+                cfg.USE_SR_FILTER = state
+                utils.CURRENT_CONFIG["USE_SR_FILTER"] = state
+                if hasattr(self, 'sw_whale'):
+                    self.root.after(0, lambda s=state: self.sw_whale.select() if s else self.sw_whale.deselect())
+                self.log(f"🐋 REMOTE: Whale Radar {'ENABLED' if state else 'DISABLED'}")
+
+            if "use_adaptive_reversal" in data:
+                state = to_bool(data["use_adaptive_reversal"])
+                cfg.USE_ADAPTIVE_REVERSAL = state
+                utils.CURRENT_CONFIG["USE_ADAPTIVE_REVERSAL"] = state
+                if hasattr(self, 'sw_rev'):
+                    self.root.after(0, lambda s=state: self.sw_rev.select() if s else self.sw_rev.deselect())
+                self.log(f"🔄 REMOTE: Auto-Rev {'ENABLED' if state else 'DISABLED'}")
+
+            # [G] RECIPE SWITCHING
+            if "recipe" in data:
+                recipe_name = str(data["recipe"])
+                self.log(f"👨‍🍳 REMOTE: Loading Recipe '{recipe_name}'...")
+                self.root.after(0, lambda: self.load_selected_recipe(recipe_name))
+
+            # [H] SCHEDULER UPDATE (Full JSON Overwrite)
+            if "update_schedule" in data:
+                new_schedule = data["update_schedule"] # Expects Dict or List
+                if self.session_manager:
+                    # Save to file
+                    import json
+                    with open(self.session_manager.config_file, 'w', encoding='utf-8') as f:
+                        json.dump(new_schedule, f, indent=4)
+                    
+                    # Reload
+                    self.session_manager.load_schedule()
+                    self.session_manager.check_schedule() # Force check
+                    self.log("📅 REMOTE: Scheduler Rhythm Updated.")
+                    self.mobile_log("📅 REMOTE: Scheduler Updated.")
+
+            # [I] SPECIFIC RISK SETTINGS
+            if "daily_target" in data:
+                try:
+                    target = float(data["daily_target"])
+                    cfg.DAILY_PROFIT_TARGET = target
+                    utils.CURRENT_CONFIG["DAILY_PROFIT_TARGET"] = target
+                    self.daily_target = target
+                    self.log(f"💰 REMOTE: Target set to {target}")
+                except: pass
+
+            # FINAL SYNC
+            self.sync_telemetry()
+            
+            # PUSH ALERT RESPONSES
+            if hasattr(self, 'uplink') and self.uplink:
+                if "is_trading_active" in data: self.uplink.send_push("Ghost Remote", f"Status: {'RUNNING' if to_bool(data['is_trading_active']) else 'PAUSED'}")
+                elif "action" in data and data["action"] == "CLOSE_ALL": self.uplink.send_push("Ghost Remote", "🚨 PANIC EXECUTED")
+                elif "update_config" in data: self.uplink.send_push("Ghost Remote", "⚙️ Config Updated")
+
+        except Exception as e:
+            self.log(f"❌ Remote Command Error: {e}")
+            self.mobile_log(f"❌ REMOTE ERR: {e}")
+            import traceback
+            traceback.print_exc()
+```
