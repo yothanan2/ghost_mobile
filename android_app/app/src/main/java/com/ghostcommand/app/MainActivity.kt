@@ -2,9 +2,11 @@ package com.ghostcommand.app
 
 import android.content.Context
 import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
+import androidx.fragment.app.FragmentActivity
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
+import java.security.MessageDigest
+
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,12 +22,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.foundation.border
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.database.DataSnapshot
@@ -129,7 +132,7 @@ data class RemoteVersion(
 object GhostLingo {
     val EN = mapOf(
         "DASHBOARD" to "DASHBOARD",
-        "NEURAL_STREAM" to "SYS LOGS",
+        "NEURAL_STREAM" to "TERMINAL", // [v2.08 REBRAND]
         "HISTORY" to "HISTORY",
         "DAILY_VAULT" to "DAILY VAULT",
         "RSI_LABEL" to "RSI (MOMENTUM)",
@@ -190,7 +193,7 @@ fun TR(key: String, lang: String): String {
 }
 
 // --- MAIN ACTIVITY ---
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
@@ -199,15 +202,17 @@ class MainActivity : ComponentActivity() {
         
         // --- GHOST LINK SUBSCRIPTION ---
         FirebaseMessaging.getInstance().subscribeToTopic("ghost_alerts")
-            .addOnCompleteListener { task ->
-                var msg = "📡 Ghost Link: Connected"
-                if (!task.isSuccessful) {
-                    msg = "❌ Ghost Link: Subscription Failed"
-                }
-                android.util.Log.d("GhostLink", msg)
-            }
-
-        setContent { GhostAppEntryPoint() }
+        
+        // --- APP SECURITY LOCK (v2.08) ---
+        // Require Biometric/PIN on Launch
+        authenticate(this) { success ->
+             if (success) {
+                 setContent { GhostAppEntryPoint() }
+             } else {
+                 Toast.makeText(this, "Authentication Failed. App Locked.", Toast.LENGTH_LONG).show()
+                 finish() // Close App
+             }
+        }
     }
 
     private fun requestNotificationPermission() {
@@ -217,6 +222,39 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+}
+
+// --- SECURITY HELPERS ---
+fun authenticate(activity: FragmentActivity, onResult: (Boolean) -> Unit) {
+    val executor = ContextCompat.getMainExecutor(activity)
+    val biometricPrompt = BiometricPrompt(activity, executor,
+        object : BiometricPrompt.AuthenticationCallback() {
+            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                super.onAuthenticationSucceeded(result)
+                onResult(true)
+            }
+            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                super.onAuthenticationError(errorCode, errString)
+                onResult(false)
+            }
+            override fun onAuthenticationFailed() {
+                super.onAuthenticationFailed()
+                // Handled internally by prompt, but we can log
+            }
+        })
+
+    val promptInfo = BiometricPrompt.PromptInfo.Builder()
+        .setTitle("Ghost Security")
+        .setSubtitle("Identity Verification Required")
+        .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL)
+        .build()
+
+    biometricPrompt.authenticate(promptInfo)
+}
+
+fun hashPin(pin: String): String {
+    val bytes = MessageDigest.getInstance("SHA-256").digest(pin.toByteArray())
+    return bytes.joinToString("") { "%02x".format(it) }
 }
 
 // --- ENTRY POINT ---
@@ -247,10 +285,14 @@ fun GhostAppEntryPoint() {
     }
 }
 
-// --- LOGIN SCREEN ---
+// --- LOGIN SCREEN (SECURE v2.08) ---
 @Composable
 fun LoginScreen(lang: String, onToggleLang: () -> Unit, onLogin: (String) -> Unit) {
-    var text by remember { mutableStateOf("") }
+    var idText by remember { mutableStateOf("") }
+    var pinText by remember { mutableStateOf("") }
+    var statusMsg by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) } // Lock button while checking
+    
     Box(modifier = Modifier.fillMaxSize().background(BgDark)) {
         // Lang Toggle (Top Right)
         Button(
@@ -269,28 +311,86 @@ fun LoginScreen(lang: String, onToggleLang: () -> Unit, onLogin: (String) -> Uni
         ) {
             Text(TR("LOGIN_TITLE", lang), color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
             Text(TR("LOGIN_SUB", lang), color = NeonGreen, fontSize = 12.sp, letterSpacing = 4.sp)
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(30.dp))
+            
+            // TARGET ID
             Text(TR("TARGET_ID", lang), color = TextDim, fontSize = 12.sp, modifier = Modifier.align(Alignment.Start))
             OutlinedTextField(
-                value = text,
-                onValueChange = { text = it },
+                value = idText,
+                onValueChange = { idText = it },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = NeonGreen,
                     unfocusedBorderColor = Color.Gray,
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.Gray
                 ),
-                modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+                modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
+            
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // GHOST PIN (v2.08)
+            Text("GHOST PIN", color = TextDim, fontSize = 12.sp, modifier = Modifier.align(Alignment.Start))
+            OutlinedTextField(
+                value = pinText,
+                onValueChange = { if (it.length <= 6) pinText = it },
+                visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Gold,
+                    unfocusedBorderColor = Color.Gray,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.Gray
+                ),
+                modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword)
+            )
+
+            if (statusMsg.isNotEmpty()) {
+                Text(statusMsg, color = NeonRed, fontSize = 12.sp, modifier = Modifier.padding(to = 10.dp))
+            }
+            
+            Spacer(modifier = Modifier.height(20.dp))
+
             Button(
-                onClick = { if (text.isNotBlank()) onLogin(text) },
-                colors = ButtonDefaults.buttonColors(containerColor = NeonGreen),
+                onClick = { 
+                    if (idText.isNotBlank() && pinText.isNotBlank()) {
+                         isLoading = true
+                         statusMsg = "Verifying..."
+                         
+                         // FETCH HASH FROM BOT
+                         val db = com.google.firebase.ktx.Firebase.database("https://ghost-app-2fff8-default-rtdb.europe-west1.firebasedatabase.app")
+                         db.getReference("users/$idText/system/auth/pin_hash").get()
+                           .addOnSuccessListener { s ->
+                               val remoteHash = s.value as? String
+                               if (remoteHash == null) {
+                                   // Legacy bot or not set up
+                                   statusMsg = "Refused: Bot not updated (No PIN Hash)."
+                               } else {
+                                   // Hash Input
+                                   val localHash = hashPin(pinText)
+                                   if (localHash == remoteHash) {
+                                       onLogin(idText)
+                                   } else {
+                                       statusMsg = "ACCESS DENIED: Invalid PIN."
+                                   }
+                               }
+                               isLoading = false
+                           }
+                           .addOnFailureListener {
+                               statusMsg = "Connection Error"
+                               isLoading = false
+                           }
+                    } 
+                },
+                enabled = !isLoading,
+                colors = ButtonDefaults.buttonColors(containerColor = if (isLoading) Color.DarkGray else NeonGreen),
                 shape = RoundedCornerShape(4.dp),
                 modifier = Modifier.fillMaxWidth().height(50.dp)
             ) {
-                Text(TR("CONNECT_BTN", lang), color = Color.Black, fontWeight = FontWeight.Bold)
+                Text(if (isLoading) "VERIFYING..." else TR("CONNECT_BTN", lang), color = Color.Black, fontWeight = FontWeight.Bold)
             }
         }
     }

@@ -147,3 +147,32 @@ Ensure that `mode_name` accurately reflects the "PAUSE" state if the Scheduler o
 ```
 
 *End of Instructions*
+
+## 6. [NEW] v2.08 Security Core (Ghost PIN)
+**Goal**: Secure the bot against unauthorized connections (authentication).
+
+**Action A**: Update `config.py`
+Add the following variable. The user MUST set this for the app to work.
+```python
+# SECURITY
+GHOST_PIN = "0000" # CHANGE THIS! 4-6 Digit PIN.
+```
+
+**Action B**: Update `dashboard.py` (Broadcast Auth Hash)
+In `broadcast_vitals` or `on_startup`:
+```python
+    import hashlib
+    
+    # 1. Get PIN from Config
+    pin = str(self.brain.config.get("GHOST_PIN", "0000"))
+    
+    # 2. Hash it (SHA256)
+    # We do NOT send the raw PIN. We send the Hash.
+    # App will Hash the User Input and Compare.
+    pin_hash = hashlib.sha256(pin.encode()).hexdigest()
+    
+    # 3. Upload to Secure Node
+    self.uplink.ref.child("system/auth/pin_hash").set(pin_hash)
+    print(f"🔐 SECURITY: Ghost Key Hashed & Uploaded.")
+```
+**CRITICAL**: Without this hash at `system/auth/pin_hash`, the v2.08 App will REFUSE to connect.

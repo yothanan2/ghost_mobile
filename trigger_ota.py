@@ -20,18 +20,18 @@ def trigger_update():
 
     # 2. Define Update Payload
     version_data = {
-        "code": 27,                 
-        "name": "2.07",             
-        "mandatory": False,          
-        "changelog": "📈 UPDATE v2.07: Ghost Visualizer\n- Ghost Chart: Real-time Price & Lines.\n- News Radar: Economic Event Warnings.\n- Performance Optimizations.",
+        "code": 28,                 
+        "name": "2.08",             
+        "mandatory": True,          
+        "changelog": "🛡️ SECURITY UPDATE v2.08: Zero Trust\n- GHOST PIN: Login Authentication.\n- BIOMETRIC LOCK: App-Level Protection.\n- TERMINAL: Renamed from Sys Logs.",
         "changelog_map": {
-            "en": "📈 UPDATE v2.07: Ghost Visualizer\n- Ghost Chart: Real-time Price & Lines.\n- News Radar: Economic Event Warnings.\n- Performance Optimizations.",
-            "th": "📈 อัปเดต v2.07: กราฟเรียลไทม์\n- แสดงกราฟราคาและเส้น Entry/SL/TP\n- แจ้งเตือนข่าวเศรษฐกิจ",
-            "ru": "📈 ОБНОВЛЕНИЕ v2.07: Визуализация\n- Живой график и новости",
-            "es": "📈 ACTUALIZACIÓN v2.07: Visualizador\n- Gráfico en tiempo real y Noticias"
+            "en": "🛡️ SECURITY UPDATE v2.08: Zero Trust\n- GHOST PIN: Login Authentication.\n- BIOMETRIC LOCK: App-Level Protection.\n- TERMINAL: Renamed from Sys Logs.",
+            "th": "🛡️ อัปเดตความปลอดภัย v2.08\n- รหัสผี: ระบบยืนยันตัวตน\n- ล็อกด้วยลายนิ้วมือ\n- เปลี่ยนชื่อ Sys Logs เป็น Terminal",
+            "ru": "🛡️ БЕЗОПАСНОСТЬ v2.08\n- GHOST PIN: Авторизация\n- БИОМЕТРИЯ: Защита приложения",
+            "es": "🛡️ SEGURIDAD v2.08\n- PIN FANTASMA: Autenticación\n- BLOQUEO BIOMÉTRICO: Protección de App"
         },
         # USE RELEASES URL (STABLE) INSTEAD OF RAW
-        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.07/Ghost_v2.07_Release.apk"
+        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.08/Ghost_v2.08_Release.apk"
     }
 
     # 3. Push to 'system/version' (Correct Path per MainActivity.kt)
