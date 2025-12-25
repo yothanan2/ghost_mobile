@@ -139,7 +139,9 @@ object GhostLingo {
         "CONNECT_BTN" to "ESTABLISH LINK",
         "LANG_TOGGLE" to "🇺🇸 EN",
         "GOD_MODE_AUTO" to "⚡ GOD MODE: AUTO",
-        "GOD_MODE_OFF" to "🛡️ SAFE ESCAPE (OFF)"
+        "GOD_MODE_AUTO" to "⚡ GOD MODE: AUTO",
+        "GOD_MODE_OFF" to "🛡️ SAFE ESCAPE (OFF)",
+        "EQ_LABEL" to "EQ"
     )
 
     val TH = mapOf(
@@ -165,7 +167,9 @@ object GhostLingo {
         "CONNECT_BTN" to "เริ่มการเชื่อมต่อ",
         "LANG_TOGGLE" to "🇹🇭 TH",
         "GOD_MODE_AUTO" to "⚡ โหมดเทพ: ออโต้",
-        "GOD_MODE_OFF" to "🛡️ โหมดปลอดภัย (ปิด)"
+
+        "GOD_MODE_OFF" to "🛡️ โหมดปลอดภัย (ปิด)",
+        "EQ_LABEL" to "ยอดเงินในบัญชี" // Equity/Balance
     )
 }
 
@@ -456,9 +460,10 @@ fun TacticalDashboard(database: com.google.firebase.database.FirebaseDatabase, b
                     val finalPnl = if (floatingPnL >= 0) "+$pnlStr" else pnlStr
 
                     Text(finalPnl, color = pnlColor, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+
                     // [RESTORE EQUITY]
                     val eqStr = formatCurrency(vitals.equity, vitals.currency_symbol, vitals.currency)
-                    Text("EQ: $eqStr", color = Color.Gray, fontSize = 11.sp)
+                    Text("${TR("EQ_LABEL", lang)}: $eqStr", color = Color.Gray, fontSize = 11.sp)
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Text(TR("ACTIVE_TRADES", lang), color = TextDim, fontSize = 12.sp) // [UI FIX] 12sp
