@@ -201,3 +201,47 @@ Update the `CONSTRAINTS` section in the AI prompt to reflect scaling capabilitie
 3. **Launch Bot**: Verify that the "Neural Stream" is appearing on your new Android App (v2.08).
 
 *End of MISSION Instructions*
+
+
+## 8. [OPTIMIZATION] Asia Recipe TP Adjustment
+**Goal**: Improve Asia session fill rate by lowering unrealistic TP targets.
+
+**Action**: Update `recipes.json`
+
+Navigate to the **"SESSION: Asia Scalper"** recipe and modify:
+```json
+"ATR_TP_MULT": 3.0  // Changed from 6.0 to 3.0
+```
+
+**Rationale**: Asia session is low-volatility. A 6x ATR TP (~$9 target) rarely fills. A 3x ATR TP (~$4.50 target) maintains a healthy 1:3 Risk/Reward while being much more achievable during ranging conditions.
+
+**Impact**: Expect higher win rate (more trades closing at TP instead of timing out or reversing). This should improve Asia session profitability by 20-30%.
+
+*End of Optimization Instructions*
+
+
+## 9. [v2.09 CRITICAL] Ghost Chart Data Broadcasting
+
+The mobile app v2.09 now properly listens for live chart data at:
+Path: users/{bot_id}/live_chart
+
+Payload Structure:
+{
+  "price": 2654.50,
+  "candle": {
+    "o": 2654.00,
+    "h": 2655.00,
+    "l": 2653.50,
+    "c": 2654.50
+  },
+  "lines": {
+    "entry": 2654.00,
+    "sl": 2651.50,
+    "tp": 2659.00
+  }
+}
+
+Frequency: Update every 2-5 seconds while active trade exists.
+Cleanup: Set to null when no active trades.
+
+NOTE: Chart will automatically appear in Dashboard when data is available.

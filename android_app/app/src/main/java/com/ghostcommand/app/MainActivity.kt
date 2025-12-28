@@ -54,6 +54,11 @@ import androidx.core.content.ContextCompat
 import org.json.JSONObject
 import java.io.File
 
+// [v2.09] Ghost Chart Integration
+import com.ghostcommand.app.GhostChart
+import com.ghostcommand.app.Candle
+import com.ghostcommand.app.TradeLines
+
 // --- COLORS ---
 // --- COLORS ---
 val BgDark = Color(0xFF0A0A0A)
@@ -274,6 +279,13 @@ fun GhostAppEntryPoint() {
         prefs.edit().putString("lang", newLang).apply()
     }
     
+    // [v2.09] SOUND NOTIFICATION STATE
+    var soundEnabled by remember { mutableStateOf(prefs.getBoolean("sound_enabled", true)) }
+    fun toggleSound() {
+        soundEnabled = !soundEnabled
+        prefs.edit().putBoolean("sound_enabled", soundEnabled).apply()
+    }
+    
     if (savedId.isNotEmpty()) {
         MainScreen(botId = savedId, lang = lang, onToggleLang = ::toggleLang, onLogout = {
             prefs.edit().remove("bot_id").apply()
@@ -423,11 +435,57 @@ fun MainScreen(botId: String, lang: String, onToggleLang: () -> Unit, onLogout: 
         onDispose { rules.removeEventListener(listener) }
     }
 
+    // [v2.09] GHOST CHART State
+    var chartPrice by remember { mutableStateOf(0f) }
+    var chartCandles by remember { mutableStateOf<List<Candle>>(emptyList()) }
+    var chartLines by remember { mutableStateOf<TradeLines?>(null) }
+    
+    DisposableEffect(botId) {
+        val chartRef = database.getReference("users/$botId/live_chart")
+        val chartListener = object : ValueEventListener {
+            override fun onDataChange(s: DataSnapshot) {
+                try {
+                    val data = s.value as? Map<String, Any> ?: return
+                    
+                    chartPrice = (data["price"] as? Number)?.toFloat() ?: 0f
+                    
+                    // Parse candle data
+                    val candleData = data["candle"] as? Map<String, Any>
+                    if (candleData != null) {
+                        val o = (candleData["o"] as? Number)?.toFloat() ?: 0f
+                        val h = (candleData["h"] as? Number)?.toFloat() ?: 0f
+                        val l = (candleData["l"] as? Number)?.toFloat() ?: 0f
+                        val c = (candleData["c"] as? Number)?.toFloat() ?: 0f
+                        val ts = System.currentTimeMillis()
+                        
+                        // Keep last 50 candles in memory
+                        chartCandles = (chartCandles + Candle(o, h, l, c, ts)).takeLast(50)
+                    }
+                    
+                    // Parse trade lines
+                    val linesData = data["lines"] as? Map<String, Any>
+                    chartLines = if (linesData != null) {
+                        TradeLines(
+                            entry = (linesData["entry"] as? Number)?.toFloat() ?: 0f,
+                            sl = (linesData["sl"] as? Number)?.toFloat() ?: 0f,
+                            tp = (linesData["tp"] as? Number)?.toFloat() ?: 0f
+                        )
+                    } else null
+                } catch (e: Exception) {
+                    // Silent fail - chart is non-critical
+                }
+            }
+            override fun onCancelled(e: DatabaseError) {}
+        }
+        chartRef.addValueEventListener(chartListener)
+        onDispose { chartRef.removeEventListener(chartListener) }
+    }
+
     Column(modifier = Modifier.fillMaxSize().background(BgDark)) {
         // CONTENT AREA
         Box(modifier = Modifier.weight(1f)) {
             when (selectedTab) {
-                0 -> TacticalDashboard(database, botId, onLogout, lang, onToggleLang)
+                0 -> TacticalDashboard(database, botId, onLogout, lang, onToggleLang, chartPrice, chartCandles, chartLines)
                 1 -> NeuralStream(database, botId, lang)
                 2 -> DailyHistory(database, botId, lang)
                 3 -> SettingsScreen(database, botId, lang, vitals)
@@ -475,7 +533,16 @@ fun IconTabButton(icon: androidx.compose.ui.graphics.vector.ImageVector, selecte
 
 // --- TAB 1: DASHBOARD ---
 @Composable
-fun TacticalDashboard(database: com.google.firebase.database.FirebaseDatabase, botId: String, onLogout: () -> Unit, lang: String, onToggleLang: () -> Unit) {
+fun TacticalDashboard(
+    database: com.google.firebase.database.FirebaseDatabase, 
+    botId: String, 
+    onLogout: () -> Unit, 
+    lang: String, 
+    onToggleLang: () -> Unit,
+    chartPrice: Float,
+    chartCandles: List<Candle>,
+    chartLines: TradeLines?
+) {
     val vitalsRef = database.getReference("users/$botId/vitals")
     val cmdRef = database.getReference("users/$botId/commands")
     var vitals by remember { mutableStateOf(GhostVitals()) }
@@ -624,6 +691,31 @@ fun TacticalDashboard(database: com.google.firebase.database.FirebaseDatabase, b
         }
 
         Spacer(modifier = Modifier.height(20.dp))
+
+        // [v2.09] GHOST CHART (Only show if active trade exists)
+        if (chartCandles.isNotEmpty() && chartPrice > 0f) {
+            CyberCard {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Text(
+                        "📊 LIVE CHART",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = NeonGreen,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    GhostChart(
+                        price = chartPrice,
+                        candles = chartCandles,
+                        lines = chartLines,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+        }
 
         // 5. GOD MODE TOGGLE (Safe Escape)
         val godModeColor = if (vitals.auto_god_mode) Gold else Color.Gray

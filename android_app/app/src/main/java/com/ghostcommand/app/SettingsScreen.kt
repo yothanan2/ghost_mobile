@@ -23,7 +23,41 @@ fun SettingsScreen(database: FirebaseDatabase, botId: String, lang: String, vita
     val cmdRef = database.getReference("users/$botId/commands")
     var selectedTab by remember { mutableStateOf(0) } // 0=STRATEGY, 1=RISK, 2=SCHEDULER
 
+    // [v2.09] Sound Preference (Get from SharedPreferences)
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val prefs = context.getSharedPreferences("ghost_prefs", android.content.Context.MODE_PRIVATE)
+    var soundEnabled by remember { mutableStateOf(prefs.getBoolean("sound_enabled", true)) }
+
     Column(modifier = Modifier.fillMaxSize().padding(15.dp)) {
+        
+        // [v2.09] APP PREFERENCES
+        CyberCard {
+            Column(Modifier.padding(15.dp)) {
+                Text("APP PREFERENCES", color = NeonBlue, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(12.dp))
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("🔊 Notification Sound", color = Color.White, fontSize = 14.sp)
+                    Switch(
+                        checked = soundEnabled,
+                        onCheckedChange = { 
+                            soundEnabled = it
+                            prefs.edit().putBoolean("sound_enabled", it).apply()
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = NeonGreen,
+                            checkedTrackColor = NeonGreen.copy(alpha = 0.5f)
+                        )
+                    )
+                }
+            }
+        }
+        
+        Spacer(Modifier.height(15.dp))
         
         Text("COMMAND PROTOCOLS", color = Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(10.dp))

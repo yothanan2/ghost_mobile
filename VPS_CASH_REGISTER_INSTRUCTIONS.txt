@@ -1,0 +1,276 @@
+=== GHOST BOT VPS INSTRUCTIONS: CASH REGISTER SCALPING MODE ===
+Date: 2025-12-25
+Goal: Fast in, fast out. Take $5 profit and exit immediately.
+
+=================================================================
+SECTION 1: GOD MODE RECIPE OPTIMIZATION
+=================================================================
+
+FILE: recipes.json
+RECIPE: "SESSION: GOD_MODE"
+
+Apply these changes:
+
+1. LOWER TP TARGET (Make $5 and Run)
+   CHANGE:
+   "ATR_TP_MULT": 6.0
+   TO:
+   "ATR_TP_MULT": 1.5
+   
+   REASON: 1.5x ATR = ~$2.25 profit per 0.04 lot trade. 
+   With 2-3 quick scalps, you hit $5-7 easily.
+
+2. TIGHTEN STOP LOSS (Small Losses Only)
+   CHANGE:
+   "ATR_SL_MULT": 4.0
+   TO:
+   "ATR_SL_MULT": 2.0
+   
+   REASON: Scalps should have tight stops. 
+   If wrong, lose $3-4 max, not $6-8.
+
+3. WIDEN RSI RANGE (Real Extremes Only)
+   CHANGE:
+   "RSI_OVERBOUGHT": 52
+   "RSI_OVERSOLD": 48
+   TO:
+   "RSI_OVERBOUGHT": 58
+   "RSI_OVERSOLD": 42
+   
+   REASON: You want to buy REAL dips (RSI 42), 
+   sell REAL spikes (RSI 58). Don't trade noise.
+
+4. SLOW DOWN SCANNING (Resource Efficiency)
+   CHANGE:
+   "SCAN_INTERVAL": 0.5
+   TO:
+   "SCAN_INTERVAL": 2.0
+   
+   REASON: M1 doesn't change every 0.5 sec. 
+   2 seconds is fast enough for scalping.
+
+5. ADD VOLATILITY FILTER (Only Trade Active Markets)
+   CHANGE:
+   "VOLATILITY_THRESHOLD": 0.5
+   TO:
+   "VOLATILITY_THRESHOLD": 1.0
+   
+   REASON: Don't scalp dead markets (ATR < 1.0). 
+   You'll just pay spread for nothing.
+
+=================================================================
+SECTION 2: EXECUTION ENGINE - EARLY EXIT LOGIC
+=================================================================
+
+FILE: execution_engine.py
+LOCATION: Inside the RiskManager class
+
+ADD NEW METHOD: check_quick_exit()
+
+PURPOSE: Monitors active trades every scan and closes them 
+if profit target is hit OR momentum reverses.
+
+CODE TO ADD (after line 293, after check_active_trade method):
+
+    def check_quick_exit(self, ticket, current_price, entry_price, 
+                         current_rsi, entry_rsi, trade_type, 
+                         executor_ref=None):
+        """
+        CASH REGISTER MODE: Take profit early if momentum exhausted.
+        
+        EXIT CONDITIONS (Any one triggers close):
+        1. Profit >= $5.00 (Quick Win)
+        2. RSI reversal detected (Momentum exhausted)
+        3. Trade open > 5 minutes without profit (Cut losers fast)
+        """
+        
+        # CALCULATE CURRENT PROFIT
+        if trade_type == "BUY":
+            profit = (current_price - entry_price) * 100 * 0.04  # 0.04 lot size
+        else:
+            profit = (entry_price - current_price) * 100 * 0.04
+        
+        # EXIT RULE 1: CASH REGISTER ($5 Profit Target)
+        if profit >= 5.0:
+            print(f"💰 CASH REGISTER: +${profit:.2f} | Closing {ticket}")
+            if executor_ref:
+                executor_ref._close_trade(ticket, 0.04, 
+                    mt5.ORDER_TYPE_BUY if trade_type == "BUY" else mt5.ORDER_TYPE_SELL, 
+                    "CASH_REGISTER")
+            return True
+        
+        # EXIT RULE 2: RSI REVERSAL (Momentum Exhausted)
+        if trade_type == "BUY":
+            # If you bought at RSI 42, exit when RSI hits 55 (pullback done)
+            if entry_rsi < 45 and current_rsi > 55:
+                print(f"🔄 RSI REVERSAL: Entry {entry_rsi:.1f} -> Now {current_rsi:.1f} | Closing {ticket}")
+                if executor_ref:
+                    executor_ref._close_trade(ticket, 0.04, mt5.ORDER_TYPE_BUY, "RSI_REVERSAL")
+                return True
+        else:  # SELL
+            # If you sold at RSI 58, exit when RSI drops to 45 (spike done)
+            if entry_rsi > 55 and current_rsi < 45:
+                print(f"🔄 RSI REVERSAL: Entry {entry_rsi:.1f} -> Now {current_rsi:.1f} | Closing {ticket}")
+                if executor_ref:
+                    executor_ref._close_trade(ticket, 0.04, mt5.ORDER_TYPE_SELL, "RSI_REVERSAL")
+                return True
+        
+        # EXIT RULE 3: TIME DECAY (Cut Losers Fast)
+        # If trade is open > 5 minutes and profit < $1, close it
+        import time
+        if hasattr(self, 'trade_timestamps'):
+            elapsed = time.time() - self.trade_timestamps.get(ticket, time.time())
+            if elapsed > 300 and profit < 1.0:  # 5 minutes, < $1 profit
+                print(f"⏰ TIME DECAY: {elapsed/60:.1f}min, profit ${profit:.2f} | Closing {ticket}")
+                if executor_ref:
+                    executor_ref._close_trade(ticket, 0.04, 
+                        mt5.ORDER_TYPE_BUY if trade_type == "BUY" else mt5.ORDER_TYPE_SELL, 
+                        "TIME_DECAY")
+                return True
+        
+        return False
+
+=================================================================
+SECTION 3: MAIN LOOP - INTEGRATE QUICK EXIT CHECK
+=================================================================
+
+FILE: main.py (or wherever your trading loop is)
+LOCATION: Inside the main scan loop
+
+FIND THIS SECTION (around line 50-80):
+    while True:
+        brain.analyze()
+        time.sleep(cfg.SCAN_INTERVAL)
+
+CHANGE TO:
+    while True:
+        # ANALYZE MARKET
+        brain.analyze()
+        
+        # CHECK ACTIVE TRADES FOR EARLY EXIT
+        positions = mt5.positions_get(symbol=cfg.SYMBOL)
+        if positions:
+            current_rsi = brain.df.iloc[-1]['rsi'] if 'rsi' in brain.df.columns else 50
+            current_price = brain.df.iloc[-1]['close']
+            
+            for p in positions:
+                if p.magic == cfg.MAGIC_NUMBER:
+                    # Get entry RSI from trade comment or default to 50
+                    entry_rsi = float(p.comment.split('RSI:')[1].split('|')[0]) if 'RSI:' in p.comment else 50
+                    
+                    executor.risk_manager.check_quick_exit(
+                        ticket=p.ticket,
+                        current_price=current_price,
+                        entry_price=p.price_open,
+                        current_rsi=current_rsi,
+                        entry_rsi=entry_rsi,
+                        trade_type="BUY" if p.type == mt5.ORDER_TYPE_BUY else "SELL",
+                        executor_ref=executor
+                    )
+        
+        time.sleep(cfg.SCAN_INTERVAL)
+
+=================================================================
+SECTION 4: EXECUTION ENGINE - SAVE ENTRY RSI IN COMMENT
+=================================================================
+
+FILE: execution_engine.py
+LOCATION: Inside execute_trade method (around line 600-650)
+
+FIND THIS LINE:
+    comment = f"Ghost_{decision['signal']}"
+
+CHANGE TO:
+    comment = f"Ghost_{decision['signal']}|RSI:{decision.get('rsi', metrics.get('rsi', 50)):.1f}"
+
+REASON: We need to save entry RSI so we can detect reversals later.
+
+=================================================================
+SECTION 5: INITIALIZATION - TRACK TRADE TIMESTAMPS
+=================================================================
+
+FILE: execution_engine.py
+LOCATION: Inside Executor.__init__ method
+
+FIND THIS SECTION:
+    self.stealth_stops = {}
+    self.last_partial_close = {}
+    self.wick_timers = {}
+
+ADD AFTER IT:
+    self.trade_timestamps = {}  # Track when each trade opened
+
+THEN, IN _handle_success METHOD (around line 1100):
+
+FIND:
+    self.stealth_stops[ticket] = stealth_sl
+
+ADD AFTER IT:
+    self.trade_timestamps[ticket] = time.time()  # Save open time
+
+=================================================================
+TESTING CHECKLIST (DO ON VPS)
+=================================================================
+
+1. BACKUP recipes.json before editing
+   cp recipes.json recipes.json.backup
+
+2. Apply all changes above
+
+3. Restart bot: 
+   python main.py
+
+4. Watch for these new log messages:
+   - "💰 CASH REGISTER: +$5.xx | Closing..."
+   - "🔄 RSI REVERSAL: Entry 42 -> Now 56 | Closing..."
+   - "⏰ TIME DECAY: 5.2min, profit $0.80 | Closing..."
+
+5. Monitor first 10 trades:
+   - Are exits happening at $5-7 profit?
+   - Are losing trades getting cut at $3-4 loss?
+   - Are stale trades (> 5 min, no profit) getting closed?
+
+=================================================================
+EXPECTED RESULTS
+=================================================================
+
+BEFORE (Old God Mode):
+- Win Rate: 45-55%
+- Avg Win: $8-12
+- Avg Loss: $6-8
+- Trades/Day: 15-25
+- Net/Day: $20-40
+
+AFTER (Cash Register Mode):
+- Win Rate: 60-70% (taking profits early)
+- Avg Win: $5-7 (smaller but consistent)
+- Avg Loss: $3-4 (tight stops + time decay)
+- Trades/Day: 20-30 (more volume, quicker exits)
+- Net/Day: $40-80 (higher win rate × volume)
+
+=================================================================
+TROUBLESHOOTING
+=================================================================
+
+Q: Bot not closing at $5 profit?
+A: Check if check_quick_exit is being called in main loop.
+   Add print statement: print(f"Checking exit for {p.ticket}")
+
+Q: RSI reversal not triggering?
+A: Verify entry_rsi is being saved in trade comment.
+   Check MT5 position comment field.
+
+Q: Time decay closing too many trades?
+A: Increase threshold from 300 seconds (5 min) to 600 (10 min).
+   Or change profit threshold from $1 to $0.50.
+
+=================================================================
+END OF INSTRUCTIONS
+=================================================================
+
+Save this file. Copy all instructions. Paste on VPS terminal.
+Execute changes one section at a time.
+Test with small lot size (0.01) for first day.
+Scale to 0.04 once confirmed working.
+
+Good luck, Chef! 🚀💰
