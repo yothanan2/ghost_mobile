@@ -13,6 +13,7 @@
 > Task :app:createReleaseCompatibleScreenManifests
 > Task :app:extractDeepLinksRelease
 > Task :app:parseReleaseLocalResources
+> Task :app:mergeReleaseResources
 
 > Task :app:processReleaseMainManifest
 package="com.ghostcommand.app" found in source AndroidManifest.xml: C:\Users\Your Mother\Desktop\Ghost_Mobile_App\android_app\app\src\main\AndroidManifest.xml.
@@ -21,7 +22,6 @@ Recommendation: remove package="com.ghostcommand.app" from the source AndroidMan
 
 > Task :app:processReleaseManifest
 > Task :app:javaPreCompileRelease
-> Task :app:mergeReleaseResources
 > Task :app:extractProguardFiles
 > Task :app:mergeReleaseJniLibFolders
 > Task :app:mergeReleaseNativeLibs NO-SOURCE
@@ -30,9 +30,9 @@ Recommendation: remove package="com.ghostcommand.app" from the source AndroidMan
 > Task :app:mergeReleaseNativeDebugMetadata NO-SOURCE
 > Task :app:desugarReleaseFileDependencies
 > Task :app:mergeReleaseShaders
-> Task :app:mergeReleaseArtProfile
 > Task :app:compileReleaseShaders NO-SOURCE
 > Task :app:generateReleaseAssets UP-TO-DATE
+> Task :app:mergeReleaseArtProfile
 > Task :app:mergeReleaseAssets
 > Task :app:compressReleaseAssets
 > Task :app:checkReleaseDuplicateClasses
@@ -47,32 +47,36 @@ Recommendation: remove package="com.ghostcommand.app" from the source AndroidMan
 > Task :app:mergeExtDexRelease
 
 > Task :app:compileReleaseKotlin
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:777:71 'versionCode: Int' is deprecated. Deprecated in Java
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:887:34 Parameter 'downloadId' is never used
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:52:42 Parameter 'lang' is never used
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:166:47 Parameter 'lang' is never used
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:180:36 Unchecked cast: Any? to Map<String, Any>
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:220:61 Unchecked cast: Any? to Map<String, Any>
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:253:56 Unchecked cast: Any? to Map<String, Any>
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:336:42 Parameter 'lang' is never used
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:338:9 Variable 'firewallState' is never used
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/GhostChart.kt:40:9 Variable 'Gold' is never used
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:369:40 Unchecked cast: Any? to Map<String, Any>
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:374:53 Unchecked cast: Any? to Map<String, Any>
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:387:51 Unchecked cast: Any? to Map<String, Any>
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:726:41 Unchecked cast: Any? to Map<String, Any>
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:745:55 Unchecked cast: Any? to Map<String, Any>
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:746:54 Unchecked cast: Any? to Map<String, Any>
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:787:39 Unchecked cast: Any? to Map<String, Any>
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:978:71 'versionCode: Int' is deprecated. Deprecated in Java
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:1088:34 Parameter 'downloadId' is never used
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:86:42 Parameter 'lang' is never used
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:200:47 Parameter 'lang' is never used
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:214:36 Unchecked cast: Any? to Map<String, Any>
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:254:61 Unchecked cast: Any? to Map<String, Any>
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:287:56 Unchecked cast: Any? to Map<String, Any>
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:370:42 Parameter 'lang' is never used
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:372:9 Variable 'firewallState' is never used
 
 > Task :app:compileReleaseJavaWithJavac
-gradle.bat : warning: [options] source value 8 is obsolete 
-and will be removed in a future release
-At C:\Users\Your 
-Mother\Desktop\Ghost_Mobile_App\build_release.ps1:14 char:1
-+ & $gradleCmd clean assembleRelease --stacktrace 2>&1 | 
-Out-File -File ...
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (warning: [opt 
-   io... future release:String) [], RemoteException
+gradle.bat : warning: [options] source value 8 is obsolete and will be removed in a 
+future release
+At C:\Users\Your Mother\Desktop\Ghost_Mobile_App\build_release.ps1:20 char:1
++ & $gradleDistBin clean assembleRelease --stacktrace 2>&1 | Out-File - ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: [optio... future release:String) [ 
+   ], RemoteException
     + FullyQualifiedErrorId : NativeCommandError
  
-warning: [options] target value 8 is obsolete and will be 
-removed in a future release
-warning: [options] To suppress warnings about obsolete 
-options, use -Xlint:-options.
+warning: [options] target value 8 is obsolete and will be removed in a future release
+warning: [options] To suppress warnings about obsolete options, use -Xlint:-options.
 3 warnings
 
 > Task :app:generateReleaseLintVitalReportModel
@@ -89,5 +93,5 @@ options, use -Xlint:-options.
 > Task :app:lintVitalRelease
 > Task :app:assembleRelease
 
-BUILD SUCCESSFUL in 1m 35s
+BUILD SUCCESSFUL in 54s
 47 actionable tasks: 47 executed

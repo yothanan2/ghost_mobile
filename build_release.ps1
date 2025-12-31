@@ -38,7 +38,7 @@ Write-Host "[2/5] APK Prepared: $ApkName" -ForegroundColor Green
 # 3. Git Operations
 Write-Host "[3/5] Git Tagging ($VersionAttr)..." -ForegroundColor Cyan
 git add .
-git commit -m "Release $VersionAttr: Automated Build"
+git commit -m "Release ${VersionAttr}: Automated Build"
 git tag $VersionAttr
 git push origin master
 git push origin $VersionAttr

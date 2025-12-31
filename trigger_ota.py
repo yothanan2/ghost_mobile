@@ -20,17 +20,17 @@ def trigger_update():
 
     # 2. Define Update Payload
     version_data = {
-        "code": 29,                 
-        "name": "2.09",             
+        "code": 31,                 
+        "name": "2.11",             
         "mandatory": False,          
-        "changelog": "📊🔊 v2.09 Feature Update\n- GHOST CHART: Live chart now shows during trades\n- SOUND TOGGLE: Control notification sounds in Settings",
+        "changelog": "🚫🛡️ v2.11 Security Update\n- GHOST PIN REMOVED: Simplified login process\n- Only MT5 ID required for connection",
         "changelog_map": {
-            "en": "📊🔊 v2.09 Feature Update\n- GHOST CHART: Live chart now shows during trades\n- SOUND TOGGLE: Control notification sounds in Settings",
-            "th": "📊🔊 อัปเดต v2.09\n- แชร์ตสด: แสดงกราฟเมื่อมีเทรด\n- ควบคุมเสียง: ปิด/เปิดเสียงแจ้งเตือนได้",
-            "ru": "📊🔊 v2.09\n- ГРАФИК: Живой график в сделках\n- ЗВУК: Управление звуком",
-            "es": "📊🔊 v2.09\n- GRÁFICO: Gráfico en vivo durante operaciones\n- SONIDO: Control de notificaciones"
+            "en": "🚫🛡️ v2.11 Security Update\n- PIN REMOVED: Simplified login\n- Only MT5 ID required",
+            "th": "🚫🛡️ อัปเดต v2.11\n- ลบ PIN: เข้าสู่ระบบง่ายขึ้น\n- ใช้แค่ MT5 ID เท่านั้น",
+            "ru": "🚫🛡️ v2.11\n- PIN УДАЛЕН: Живой вход\n- Только MT5 ID",
+            "es": "🚫🛡️ v2.11\n- PIN ELIMINADO: Inicio simplificado\n- Solo requiere MT5 ID"
         },
-        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.09/Ghost_v2.09_Release.apk"
+        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.11/Ghost_v2.11_Release.apk"
     }
 
     # 3. Push to 'system/version' (Correct Path per MainActivity.kt)
