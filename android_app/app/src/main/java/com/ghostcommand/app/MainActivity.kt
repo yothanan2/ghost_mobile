@@ -4,8 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import androidx.fragment.app.FragmentActivity
 import androidx.activity.ComponentActivity
-import androidx.biometric.BiometricManager
-import androidx.biometric.BiometricPrompt
+// Biometric imports removed v2.11
 import androidx.activity.compose.setContent
 import java.security.MessageDigest
 
@@ -210,16 +209,8 @@ class MainActivity : FragmentActivity() {
         // --- GHOST LINK SUBSCRIPTION ---
         FirebaseMessaging.getInstance().subscribeToTopic("ghost_alerts")
         
-        // --- APP SECURITY LOCK (v2.08) ---
-        // Require Biometric/PIN on Launch
-        authenticate(this) { success ->
-             if (success) {
-                  setContent { GhostAppEntryPoint() }
-             } else {
-                 Toast.makeText(this, "Authentication Failed. App Locked.", Toast.LENGTH_LONG).show()
-                 finish() // Close App
-             }
-        }
+        // --- APP SECURITY LOCK REMOVED (v2.11) ---
+        setContent { GhostAppEntryPoint() }
     }
 
     private fun requestNotificationPermission() {
@@ -232,33 +223,8 @@ class MainActivity : FragmentActivity() {
 }
 
 // --- SECURITY HELPERS ---
-fun authenticate(activity: FragmentActivity, onResult: (Boolean) -> Unit) {
-    val executor = ContextCompat.getMainExecutor(activity)
-    val biometricPrompt = BiometricPrompt(activity, executor,
-        object : BiometricPrompt.AuthenticationCallback() {
-            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                super.onAuthenticationSucceeded(result)
-                onResult(true)
-            }
-            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                super.onAuthenticationError(errorCode, errString)
-                onResult(false)
-            }
-            override fun onAuthenticationFailed() {
-                super.onAuthenticationFailed()
-                // Handled internally by prompt, but we can log
-            }
-        })
-
-    val promptInfo = BiometricPrompt.PromptInfo.Builder()
-        .setTitle("Ghost Security")
-        .setSubtitle("Identity Verification Required")
-        .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL)
-        .build()
-
-    biometricPrompt.authenticate(promptInfo)
-}
-
+// --- SECURITY HELPERS (Removed in v2.11) ---
+// hashPin kept for legacy support if needed, though PIN is removed from UI.
 fun hashPin(pin: String): String {
     val bytes = MessageDigest.getInstance("SHA-256").digest(pin.toByteArray())
     return bytes.joinToString("") { "%02x".format(it) }

@@ -1,0 +1,7 @@
+{
+    "code": 30,
+    "name": "2.10",
+    "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.10/app-release.apk",
+    "changelog": "🔓 Removed Ghost PIN authentication\n\nLogin is now simpler - just enter your MT5 ID!\n\n✨ What's New:\n• No more Ghost PIN required\n• Faster login process\n• Simplified authentication\n\nTap to update now!",
+    "mandatory": false
+}
