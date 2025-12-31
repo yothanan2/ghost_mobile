@@ -1,0 +1,150 @@
+=================================================================
+VPS AGENT URGENT: GHOST PIN SECURITY SETUP
+=================================================================
+Date: 2025-12-31
+Priority: CRITICAL (Mobile App v2.08+ REQUIRES this)
+Objective: Enable mobile app authentication with Ghost PIN
+
+=================================================================
+PROBLEM
+=================================================================
+
+The Ghost Mobile App is asking for "Ghost PIN" but it hasn't been
+configured on the VPS bot yet. Without this, the mobile app CANNOT
+connect to the bot.
+
+=================================================================
+SOLUTION - STEP BY STEP
+=================================================================
+
+STEP 1: Add Ghost PIN to config.py
+-----------------------------------
+
+FILE: config.py
+LOCATION: After FCM_SERVER_KEY (around line 11-12)
+
+ADD THIS CODE:
+
+# --- SECURITY ---
+GHOST_PIN = "1234"  # 4-6 digit PIN for Mobile App security
+
+
+NOTES:
+- You can change "1234" to any 4-6 digit PIN you prefer
+- Remember this PIN - you'll need it to login to the mobile app
+- DO NOT use "0000" in production (default in documentation)
+
+
+STEP 2: Verify dashboard.py has PIN broadcast logic
+----------------------------------------------------
+
+FILE: dashboard.py
+LOCATION: Inside the broadcast_vitals() method OR on_startup()
+
+CHECK IF THIS CODE EXISTS (if not, ADD it):
+
+import hashlib
+
+def broadcast_security_hash(self):
+    """Broadcasts Ghost PIN hash for mobile app authentication."""
+    try:
+        # 1. Get PIN from Config
+        pin = str(self.brain.config.get("GHOST_PIN", "0000"))
+        
+        # 2. Hash it (SHA256)
+        pin_hash = hashlib.sha256(pin.encode()).hexdigest()
+        
+        # 3. Upload to Firebase
+        self.uplink.ref.child("system/auth/pin_hash").set(pin_hash)
+        print(f"🔐 SECURITY: Ghost Key Hashed & Uploaded.")
+    except Exception as e:
+        print(f"❌ SECURITY ERROR: {e}")
+
+
+THEN call this function:
+- In on_startup() method: Call self.broadcast_security_hash()
+- OR in broadcast_vitals(): Add the hash code inline
+
+
+STEP 3: Restart the bot
+------------------------
+
+COMMAND:
+    # Stop the current bot process
+    # Then restart it
+    python main.py
+
+EXPECTED OUTPUT:
+You should see this message in the logs:
+    🔐 SECURITY: Ghost Key Hashed & Uploaded.
+
+
+STEP 4: Verify in Firebase
+---------------------------
+
+1. Go to Firebase Console
+2. Navigate to: Realtime Database
+3. Go to: users/{your_bot_id}/system/auth/pin_hash
+4. You should see a 64-character hash string like:
+   "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4"
+
+
+=================================================================
+MOBILE APP LOGIN
+=================================================================
+
+After completing the steps above, you can login to the mobile app with:
+
+MT5 ID: [Your MetaTrader 5 account number]
+Ghost Pin: 1234 (or whatever you set in config.py)
+
+
+=================================================================
+SECURITY NOTES
+=================================================================
+
+✅ The bot NEVER sends the raw PIN to Firebase
+✅ Only the SHA256 hash is uploaded
+✅ The app hashes your input and compares it with the stored hash
+✅ This prevents unauthorized access to your bot
+
+⚠️ IMPORTANT: If you change the PIN in config.py, you MUST:
+   1. Restart the bot
+   2. Use the NEW PIN in the mobile app
+
+
+=================================================================
+TROUBLESHOOTING
+=================================================================
+
+Q: Mobile app says "Invalid Ghost PIN"?
+A: 1. Check Firebase: Is there a hash at system/auth/pin_hash?
+   2. If NO: Bot hasn't broadcast it yet (check Step 2)
+   3. If YES: You're entering the wrong PIN (must match config.py)
+
+Q: No hash in Firebase?
+A: 1. Check if broadcast_security_hash() is being called
+   2. Check if self.uplink is initialized
+   3. Check bot logs for errors
+
+Q: Bot won't start after changes?
+A: 1. Check for syntax errors in config.py
+   2. Verify you added the GHOST_PIN line correctly
+   3. Check indentation in dashboard.py
+
+
+=================================================================
+QUICK REFERENCE
+=================================================================
+
+Default PIN (as set): "1234"
+Firebase Path: users/{bot_id}/system/auth/pin_hash
+Hash Algorithm: SHA256
+Required App Version: v2.08 or higher
+
+
+=================================================================
+END OF INSTRUCTIONS
+=================================================================
+
+Once you complete these steps, the mobile app should connect successfully!

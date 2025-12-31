@@ -1,0 +1,500 @@
+=================================================================
+VPS AGENT COMPLETE INSTRUCTIONS - Ghost Bot (All Versions)
+=================================================================
+Date: 2025-12-31
+Target: VPS Ghost Bot
+Mobile App Versions: v2.08, v2.09+
+
+This file contains ALL instructions for VPS Agent to support the
+Ghost Mobile App. Follow sections in order for initial setup.
+
+=================================================================
+TABLE OF CONTENTS
+=================================================================
+
+SECTION 1: GHOST PIN SECURITY SETUP (CRITICAL - v2.08+)
+SECTION 2: GHOST CHART DATA BROADCASTING (v2.09+)
+SECTION 3: RECIPE & STRATEGY SYNC
+SECTION 4: HOLIDAY LOGIC & PAUSE STATE
+SECTION 5: GHOST TERMINAL (LOG STREAM)
+SECTION 6: NEWS RADAR
+SECTION 7: VERIFICATION CHECKLIST
+
+
+=================================================================
+SECTION 1: GHOST PIN SECURITY SETUP (CRITICAL)
+=================================================================
+
+Priority: CRITICAL (Required for mobile app login)
+App Version: v2.08 and later
+
+--- PROBLEM ---
+The mobile app asks for "MT5 ID" and "Ghost PIN" on login.
+Without Ghost PIN configured, users cannot authenticate.
+
+--- SOLUTION ---
+
+STEP 1: Add Ghost PIN to config.py
+------------------------------------
+FILE: config.py
+LOCATION: After FCM_SERVER_KEY (around line 11-12)
+
+ADD THIS:
+
+# --- SECURITY ---
+GHOST_PIN = "1234"  # 4-6 digit PIN for Mobile App authentication
+
+NOTES:
+- Default PIN is "1234" (can be changed to any 4-6 digit number)
+- User will need this PIN to login to mobile app
+- DO NOT use "0000" in production
+
+
+STEP 2: Add PIN broadcast logic to dashboard.py
+------------------------------------------------
+FILE: dashboard.py
+LOCATION: Add new method to TradingOS class
+
+ADD THIS METHOD:
+
+    def broadcast_security_hash(self):
+        """Broadcasts Ghost PIN hash for mobile app authentication."""
+        try:
+            import hashlib
+            
+            # 1. Get PIN from Config
+            pin = str(self.brain.config.get("GHOST_PIN", "1234"))
+            
+            # 2. Hash it (SHA256)
+            pin_hash = hashlib.sha256(pin.encode()).hexdigest()
+            
+            # 3. Upload to Firebase
+            self.uplink.ref.child("system/auth/pin_hash").set(pin_hash)
+            print(f"🔐 SECURITY: Ghost Key Hashed & Uploaded.")
+        except Exception as e:
+            print(f"❌ SECURITY ERROR: {e}")
+
+
+STEP 3: Call broadcast_security_hash on startup
+-----------------------------------------------
+OPTION A: Call in start_trading_thread (recommended)
+
+Find this section in dashboard.py:
+    def start_trading_thread(self):
+        # ... existing code ...
+        self.executor.bootstrap_mobile_history(limit=30)
+
+Add after bootstrap:
+        # Security Hash
+        self.broadcast_security_hash()
+
+OPTION B: Call in broadcast_vitals
+Add at the beginning of broadcast_vitals() method:
+        # Upload security hash (once per session)
+        if not hasattr(self, '_security_broadcasted'):
+            self.broadcast_security_hash()
+            self._security_broadcasted = True
+
+
+STEP 4: Restart bot
+-------------------
+COMMAND:
+    python main.py
+
+EXPECTED OUTPUT:
+    🔐 SECURITY: Ghost Key Hashed & Uploaded.
+
+
+STEP 5: Verify in Firebase Console
+-----------------------------------
+1. Navigate to: users/{bot_id}/system/auth/pin_hash
+2. Should see: 64-character hash (e.g., "03ac674216f3e15c...")
+
+
+MOBILE APP LOGIN:
+-----------------
+MT5 ID: [Your MT5 account number]
+Ghost Pin: 1234
+
+
+=================================================================
+SECTION 2: GHOST CHART DATA BROADCASTING (v2.09+)
+=================================================================
+
+Priority: MEDIUM (Optional visual feature)
+App Version: v2.09 and later
+
+--- PURPOSE ---
+Displays live price chart in mobile app with Entry/SL/TP lines.
+
+--- IMPLEMENTATION ---
+
+STEP 1: Add broadcast_live_chart function
+------------------------------------------
+FILE: execution_engine.py (or main.py)
+LOCATION: Top of file, after imports
+
+ADD THIS FUNCTION:
+
+import MetaTrader5 as mt5
+from datetime import datetime
+import time
+
+# Throttling
+last_chart_update = 0
+CHART_UPDATE_INTERVAL = 3  # seconds
+
+def broadcast_live_chart(executor):
+    """
+    Broadcasts live chart data to Firebase for Ghost Mobile App.
+    Only broadcasts when an active trade exists.
+    """
+    global last_chart_update
+    
+    try:
+        # Throttle updates
+        now = time.time()
+        if now - last_chart_update < CHART_UPDATE_INTERVAL:
+            return
+        last_chart_update = now
+        
+        # 1. CHECK FOR ACTIVE TRADES
+        positions = mt5.positions_get(symbol=cfg.SYMBOL)
+        if not positions or len(positions) == 0:
+            # No active trades - clear chart
+            if hasattr(executor, 'uplink') and executor.uplink:
+                executor.uplink.ref.child("live_chart").set(None)
+            return
+        
+        # 2. GET CURRENT PRICE
+        tick = mt5.symbol_info_tick(cfg.SYMBOL)
+        if not tick:
+            return
+        current_price = tick.bid
+        
+        # 3. GET CURRENT CANDLE (M1)
+        candles = mt5.copy_rates_from_pos(cfg.SYMBOL, mt5.TIMEFRAME_M1, 0, 1)
+        if candles is None or len(candles) == 0:
+            return
+        candle = candles[0]
+        
+        # 4. GET TRADE LINES
+        pos = positions[0]
+        entry_price = pos.price_open
+        sl_price = pos.sl if pos.sl > 0 else entry_price - 10
+        tp_price = pos.tp if pos.tp > 0 else entry_price + 20
+        
+        # 5. BUILD PAYLOAD
+        chart_data = {
+            "price": float(current_price),
+            "candle": {
+                "o": float(candle['open']),
+                "h": float(candle['high']),
+                "l": float(candle['low']),
+                "c": float(candle['close'])
+            },
+            "lines": {
+                "entry": float(entry_price),
+                "sl": float(sl_price),
+                "tp": float(tp_price)
+            }
+        }
+        
+        # 6. BROADCAST
+        if hasattr(executor, 'uplink') and executor.uplink:
+            executor.uplink.ref.child("live_chart").set(chart_data)
+            
+    except Exception as e:
+        # Silent fail - non-critical feature
+        pass
+
+
+STEP 2: Call function in main loop
+-----------------------------------
+FILE: main.py or execution_engine.py
+LOCATION: Main trading loop
+
+FIND:
+    while True:
+        brain.analyze()
+        time.sleep(cfg.SCAN_INTERVAL)
+
+CHANGE TO:
+    while True:
+        brain.analyze()
+        
+        # [v2.09] Live Chart
+        broadcast_live_chart(executor)
+        
+        time.sleep(cfg.SCAN_INTERVAL)
+
+
+STEP 3: Verify
+--------------
+1. Firebase: Check users/{bot_id}/live_chart
+2. Mobile App: Chart appears in Dashboard during active trade
+
+
+=================================================================
+SECTION 3: RECIPE & STRATEGY SYNC
+=================================================================
+
+STEP 1: Add broadcast_recipes to mobile_link.py
+------------------------------------------------
+FILE: mobile_link.py
+CLASS: GhostUplink
+
+ADD THIS METHOD:
+
+    def broadcast_recipes(self, cookbook):
+        """
+        Uploads the full Recipe Manifest to Firebase.
+        Path: users/{bot_id}/system/recipes
+        """
+        try:
+            self.ref_system = db.reference(f'users/{self.bot_id}/system/recipes')
+            self.ref_system.set(cookbook)
+            print(f"📜 MANIFEST: Uploaded {len(cookbook)} recipes to Cloud.")
+        except Exception as e:
+            print(f"⚠️ MANIFEST UPLOAD FAILED: {e}")
+
+
+STEP 2: Add sync_recipes to dashboard.py
+-----------------------------------------
+FILE: dashboard.py
+CLASS: TradingOS
+
+ADD THIS METHOD:
+
+    def sync_recipes(self):
+        """Push local cookbook to mobile app."""
+        if hasattr(self, 'uplink') and self.uplink and hasattr(self, 'cookbook'):
+            self.uplink.broadcast_recipes(self.cookbook)
+            print("📤 Recipes Synced to Mobile.")
+
+
+STEP 3: Call sync on startup
+-----------------------------
+FILE: dashboard.py
+METHOD: start_trading_thread
+
+ADD AFTER HISTORY BOOTSTRAP:
+    # Initial Recipe Sync
+    self.root.after(5000, self.sync_recipes)
+
+
+STEP 4: Handle remote recipe saves
+-----------------------------------
+FILE: dashboard.py
+METHOD: handle_remote_command
+
+ADD THIS BLOCK:
+
+    # Recipe Save (Remote Editor)
+    if "save_recipe" in data:
+        try:
+            r_data = data["save_recipe"]
+            name = r_data.get("name")
+            settings = r_data.get("settings")
+            
+            if name and settings and hasattr(self, 'cookbook'):
+                # Update Cookbook
+                if name in self.cookbook:
+                    self.cookbook[name].update(settings)
+                else:
+                    self.cookbook[name] = settings
+                
+                # Persist to Disk
+                import recipes
+                recipes.save_recipes(self.cookbook)
+                
+                # Sync back
+                self.sync_recipes()
+                
+                self.mobile_log(f"✅ REMOTE SAVE: Recipe '{name}' updated.")
+        except Exception as e:
+            self.mobile_log(f"❌ SAVE ERROR: {e}")
+
+
+=================================================================
+SECTION 4: HOLIDAY LOGIC & PAUSE STATE
+=================================================================
+
+FILE: dashboard.py
+METHOD: broadcast_vitals
+
+ENSURE THIS LOGIC EXISTS:
+
+    mode_name = self.brain.config.get("MODE_NAME", "MANUAL")
+    
+    # Override if scheduler paused
+    if hasattr(self, 'scheduler') and self.scheduler.is_holiday():
+        mode_name = "PAUSE"
+    
+    vitals = {
+        "mode_name": mode_name,  # App looks for "PAUSE" string
+        # ... other keys
+    }
+
+CRITICAL: App shows "Resume" button when mode_name == "PAUSE"
+
+
+=================================================================
+SECTION 5: GHOST TERMINAL (LOG STREAM)
+=================================================================
+
+FILE: dashboard.py
+METHOD: mobile_log
+
+RECOMMENDED IMPLEMENTATION:
+
+    def mobile_log(self, msg):
+        """Send log message to Firebase for mobile app."""
+        try:
+            timestamp = datetime.now().isoformat()
+            payload = {
+                "ts": timestamp,
+                "msg": msg,
+                "type": "INFO"
+            }
+            # Option A: Push (creates history)
+            self.uplink.ref_logs.push(payload)
+            
+            # Option B: Set latest only (saves bandwidth)
+            # self.uplink.ref.child("latest_log").set(payload)
+        except Exception as e:
+            pass
+
+
+=================================================================
+SECTION 6: NEWS RADAR
+=================================================================
+
+FILE: news_manager.py (or wherever news logic lives)
+METHOD: check_news
+
+INTEGRATE INTO VITALS:
+
+    def broadcast_vitals(self):
+        # ... existing vitals ...
+        
+        # Add news data
+        next_news = news_manager.get_next_event()  # Your implementation
+        if next_news:
+            vitals["news"] = {
+                "next_event": next_news['title'],
+                "time_in_minutes": next_news['minutes_until'],
+                "impact": next_news['impact']  # "HIGH", "MEDIUM", "LOW"
+            }
+
+
+=================================================================
+SECTION 7: VERIFICATION CHECKLIST
+=================================================================
+
+After completing all sections, verify:
+
+[ ] GHOST PIN
+    [ ] config.py has GHOST_PIN = "1234"
+    [ ] dashboard.py broadcasts hash on startup
+    [ ] Firebase shows hash at system/auth/pin_hash
+    [ ] Mobile app login works with PIN "1234"
+
+[ ] GHOST CHART
+    [ ] broadcast_live_chart() function exists
+    [ ] Called in main loop every 3-5 seconds
+    [ ] Firebase shows data at live_chart during trades
+    [ ] Mobile app displays chart during active trade
+    [ ] Chart disappears when no trades
+
+[ ] RECIPES
+    [ ] broadcast_recipes() in mobile_link.py
+    [ ] sync_recipes() in dashboard.py
+    [ ] Recipes synced on startup
+    [ ] Remote save works from mobile app
+
+[ ] TELEMETRY
+    [ ] broadcast_vitals includes: swarm_mode, use_firewall, 
+        whale_tracker, auto_rev, risk_percent
+    [ ] mode_name correctly shows "PAUSE" during holidays
+    [ ] News data included if available
+
+
+=================================================================
+DEPLOYMENT COMMANDS
+=================================================================
+
+1. BACKUP CURRENT CODE:
+   git checkout -b backup-$(date +%Y%m%d)
+   git push origin backup-$(date +%Y%m%d)
+
+2. APPLY CHANGES:
+   [Edit files as per instructions above]
+
+3. TEST LOCALLY (if possible):
+   python main.py
+
+4. DEPLOY TO VPS:
+   git add .
+   git commit -m "Add Ghost PIN and mobile features"
+   git push origin main
+   
+   # On VPS:
+   cd /path/to/bot
+   git pull
+   python main.py
+
+
+=================================================================
+TROUBLESHOOTING
+=================================================================
+
+ISSUE: Mobile app says "Invalid Ghost PIN"
+FIX: 1. Check Firebase: system/auth/pin_hash exists?
+     2. Check config.py: GHOST_PIN value
+     3. Restart bot to broadcast new hash
+
+ISSUE: Chart not showing
+FIX: 1. Check Firebase: live_chart has data?
+     2. Check if broadcast_live_chart() is being called
+     3. Ensure active trade exists
+
+ISSUE: Recipes not syncing
+FIX: 1. Check Firebase: system/recipes exists?
+     2. Verify sync_recipes() is called on startup
+     3. Check uplink initialization
+
+ISSUE: Bot won't start after changes
+FIX: 1. Check Python syntax errors
+     2. Verify all imports (hashlib, time, etc.)
+     3. Check indentation
+     4. Review git diff for accidental changes
+
+
+=================================================================
+QUICK REFERENCE
+=================================================================
+
+Default Ghost PIN: 1234
+Firebase Paths:
+  - Auth: users/{bot_id}/system/auth/pin_hash
+  - Chart: users/{bot_id}/live_chart
+  - Recipes: users/{bot_id}/system/recipes
+  - Vitals: users/{bot_id}/system/vitals
+
+Required App Version:
+  - Ghost PIN: v2.08+
+  - Ghost Chart: v2.09+
+
+Update Intervals:
+  - Chart: Every 3-5 seconds
+  - Vitals: Every 10-30 seconds
+
+
+=================================================================
+END OF COMPLETE VPS AGENT INSTRUCTIONS
+=================================================================
+
+For questions or issues, check individual section numbers above.
+All features are backwards compatible - older sections won't
+break newer mobile app versions.

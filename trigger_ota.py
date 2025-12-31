@@ -20,18 +20,17 @@ def trigger_update():
 
     # 2. Define Update Payload
     version_data = {
-        "code": 28,                 
-        "name": "2.08",             
-        "mandatory": True,          
-        "changelog": "🛡️ SECURITY UPDATE v2.08: Zero Trust\n- GHOST PIN: Login Authentication.\n- BIOMETRIC LOCK: App-Level Protection.\n- TERMINAL: Renamed from Sys Logs.",
+        "code": 29,                 
+        "name": "2.09",             
+        "mandatory": False,          
+        "changelog": "📊🔊 v2.09 Feature Update\n- GHOST CHART: Live chart now shows during trades\n- SOUND TOGGLE: Control notification sounds in Settings",
         "changelog_map": {
-            "en": "🛡️ SECURITY UPDATE v2.08: Zero Trust\n- GHOST PIN: Login Authentication.\n- BIOMETRIC LOCK: App-Level Protection.\n- TERMINAL: Renamed from Sys Logs.",
-            "th": "🛡️ อัปเดตความปลอดภัย v2.08\n- รหัสผี: ระบบยืนยันตัวตน\n- ล็อกด้วยลายนิ้วมือ\n- เปลี่ยนชื่อ Sys Logs เป็น Terminal",
-            "ru": "🛡️ БЕЗОПАСНОСТЬ v2.08\n- GHOST PIN: Авторизация\n- БИОМЕТРИЯ: Защита приложения",
-            "es": "🛡️ SEGURIDAD v2.08\n- PIN FANTASMA: Autenticación\n- BLOQUEO BIOMÉTRICO: Protección de App"
+            "en": "📊🔊 v2.09 Feature Update\n- GHOST CHART: Live chart now shows during trades\n- SOUND TOGGLE: Control notification sounds in Settings",
+            "th": "📊🔊 อัปเดต v2.09\n- แชร์ตสด: แสดงกราฟเมื่อมีเทรด\n- ควบคุมเสียง: ปิด/เปิดเสียงแจ้งเตือนได้",
+            "ru": "📊🔊 v2.09\n- ГРАФИК: Живой график в сделках\n- ЗВУК: Управление звуком",
+            "es": "📊🔊 v2.09\n- GRÁFICO: Gráfico en vivo durante operaciones\n- SONIDO: Control de notificaciones"
         },
-        # USE RELEASES URL (STABLE) INSTEAD OF RAW
-        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.08/Ghost_v2.08_Release.apk"
+        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.09/Ghost_v2.09_Release.apk"
     }
 
     # 3. Push to 'system/version' (Correct Path per MainActivity.kt)

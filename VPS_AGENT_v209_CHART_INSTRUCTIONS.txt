@@ -1,0 +1,265 @@
+=================================================================
+VPS AGENT INSTRUCTIONS: v2.09 GHOST CHART DATA BROADCASTING
+=================================================================
+Date: 2025-12-28
+Priority: MEDIUM (Feature enhancement, not critical)
+Objective: Enable live chart display in Ghost Mobile App v2.09
+
+=================================================================
+OVERVIEW
+=================================================================
+
+The Ghost Mobile App v2.09 now has a live chart feature that displays:
+- Real-time price (white dotted line)
+- Live candles (green/red candlesticks)
+- Trade lines (Entry, SL, TP)
+
+For this to work, the VPS bot MUST broadcast chart data to Firebase.
+
+Firebase Path: users/{bot_id}/live_chart
+
+=================================================================
+SECTION 1: WHERE TO ADD THE CODE
+=================================================================
+
+FILE: execution_engine.py (or main.py - wherever your trading loop is)
+
+LOCATION: Inside your main scan/monitoring loop, after checking for active positions.
+
+EXAMPLE PLACEMENT:
+    while True:
+        # Your existing analysis
+        brain.analyze()
+        
+        # [NEW v2.09] Broadcast chart data
+        broadcast_live_chart()  # <- ADD THIS
+        
+        time.sleep(cfg.SCAN_INTERVAL)
+
+=================================================================
+SECTION 2: IMPLEMENTATION CODE
+=================================================================
+
+ADD THIS FUNCTION (at the top of execution_engine.py or main.py):
+
+import MetaTrader5 as mt5
+from datetime import datetime
+
+def broadcast_live_chart():
+    """
+    Broadcasts live chart data to Firebase for Ghost Mobile App v2.09.
+    Only broadcasts when an active trade exists.
+    """
+    try:
+        # 1. CHECK FOR ACTIVE TRADES
+        positions = mt5.positions_get(symbol=cfg.SYMBOL)
+        if not positions or len(positions) == 0:
+            # No active trades - clear chart data
+            if hasattr(executor, 'uplink') and executor.uplink:
+                executor.uplink.ref.child("live_chart").set(None)
+            return
+        
+        # 2. GET CURRENT PRICE
+        tick = mt5.symbol_info_tick(cfg.SYMBOL)
+        if not tick:
+            return
+        current_price = tick.bid
+        
+        # 3. GET CURRENT CANDLE (M1)
+        candles = mt5.copy_rates_from_pos(cfg.SYMBOL, mt5.TIMEFRAME_M1, 0, 1)
+        if candles is None or len(candles) == 0:
+            return
+        
+        candle = candles[0]
+        
+        # 4. GET TRADE LINES (from first active position)
+        pos = positions[0]
+        entry_price = pos.price_open
+        sl_price = pos.sl if pos.sl > 0 else entry_price - 10  # Fallback if no SL
+        tp_price = pos.tp if pos.tp > 0 else entry_price + 20  # Fallback if no TP
+        
+        # 5. BUILD PAYLOAD
+        chart_data = {
+            "price": float(current_price),
+            "candle": {
+                "o": float(candle['open']),
+                "h": float(candle['high']),
+                "l": float(candle['low']),
+                "c": float(candle['close'])
+            },
+            "lines": {
+                "entry": float(entry_price),
+                "sl": float(sl_price),
+                "tp": float(tp_price)
+            }
+        }
+        
+        # 6. BROADCAST TO FIREBASE
+        if hasattr(executor, 'uplink') and executor.uplink:
+            executor.uplink.ref.child("live_chart").set(chart_data)
+            
+    except Exception as e:
+        # Silent fail - chart is non-critical feature
+        pass
+
+=================================================================
+SECTION 3: INTEGRATION INTO MAIN LOOP
+=================================================================
+
+OPTION A: If you have a main.py file
+
+FIND THIS SECTION:
+    while True:
+        brain.analyze()
+        time.sleep(cfg.SCAN_INTERVAL)
+
+CHANGE TO:
+    while True:
+        brain.analyze()
+        
+        # [v2.09] Live Chart
+        broadcast_live_chart()
+        
+        time.sleep(cfg.SCAN_INTERVAL)
+
+---
+
+OPTION B: If monitoring is in execution_engine.py
+
+FIND: Your position monitoring loop (likely in check_active_trade or similar)
+
+ADD: Call broadcast_live_chart() at the end of each scan cycle
+
+=================================================================
+SECTION 4: OPTIONAL OPTIMIZATION
+=================================================================
+
+To avoid excessive Firebase writes, you can throttle updates:
+
+import time
+
+last_chart_update = 0
+CHART_UPDATE_INTERVAL = 3  # seconds
+
+def broadcast_live_chart():
+    global last_chart_update
+    
+    # Throttle: Only update every 3 seconds
+    now = time.time()
+    if now - last_chart_update < CHART_UPDATE_INTERVAL:
+        return
+    last_chart_update = now
+    
+    # ... rest of function (same as Section 2)
+
+=================================================================
+SECTION 5: VERIFICATION
+=================================================================
+
+After implementing, verify it's working:
+
+1. FIREBASE CONSOLE CHECK:
+   - Go to Firebase Console
+   - Database > Realtime Database
+   - Navigate to: users/{your_bot_id}/live_chart
+   - You should see:
+     {
+       "price": 2654.50,
+       "candle": {...},
+       "lines": {...}
+     }
+   - Data should update every 3-5 seconds when trade is active
+
+2. MOBILE APP CHECK:
+   - Open Ghost Mobile App v2.09
+   - Navigate to Dashboard tab
+   - When you have an active trade, a chart card should appear
+   - Chart should show live price, candles, and E/SL/TP lines
+
+3. NO TRADE CHECK:
+   - Close all trades
+   - Chart should disappear from app
+   - Firebase path live_chart should be null
+
+=================================================================
+SECTION 6: TROUBLESHOOTING
+=================================================================
+
+Q: Chart not showing in app?
+A: Check if data exists in Firebase at users/{bot_id}/live_chart
+   - If NO: broadcast_live_chart() is not being called
+   - If YES: App issue (unlikely, v2.09 tested)
+
+Q: App freezes when chart appears?
+A: Reduce update frequency to 5 seconds (CHART_UPDATE_INTERVAL = 5)
+
+Q: Firebase quota warnings?
+A: Normal. Chart updates are lightweight (~200 bytes every 3 sec)
+   - 20 updates/min × 60 min × 24 hr = ~28,800 writes/day
+   - Well within Firebase free tier (100K/day)
+
+Q: Bot slows down?
+A: Add try/except around broadcast (already included in code above)
+   - Chart function is non-blocking and shouldn't affect trading
+
+=================================================================
+DEPLOYMENT CHECKLIST
+=================================================================
+
+[ ] 1. Backup your current bot code
+       cp execution_engine.py execution_engine.py.backup
+
+[ ] 2. Add broadcast_live_chart() function to execution_engine.py
+
+[ ] 3. Integrate function call into main loop
+
+[ ] 4. Restart bot
+       python main.py
+
+[ ] 5. Open Firebase Console and verify data is flowing
+
+[ ] 6. Open Ghost Mobile App v2.09 and check Dashboard
+
+[ ] 7. Confirm chart appears during active trade
+
+[ ] 8. Confirm chart disappears when no trades
+
+=================================================================
+EXAMPLE OUTPUT (Firebase)
+=================================================================
+
+Path: users/ghost_bot_123/live_chart
+
+Data:
+{
+  "price": 2654.75,
+  "candle": {
+    "o": 2654.00,
+    "h": 2655.50,
+    "l": 2653.80,
+    "c": 2654.75
+  },
+  "lines": {
+    "entry": 2654.00,
+    "sl": 2651.50,
+    "tp": 2659.00
+  }
+}
+
+=================================================================
+NOTES
+=================================================================
+
+- This feature is OPTIONAL. Bot will work fine without it.
+- Chart is a visual aid for mobile monitoring only.
+- It does NOT affect trading logic or performance.
+- Update frequency: 3-5 seconds recommended (balance between real-time feel and resource usage).
+- Data format MUST match exactly (price as float, candle with o/h/l/c keys, lines with entry/sl/tp keys).
+
+=================================================================
+END OF INSTRUCTIONS
+=================================================================
+
+Good luck! The chart feature will make mobile monitoring much more intuitive.
+
+For questions, refer to bot_instructions.txt Section 9 or check the app's implementation in MainActivity.kt (lines 437-476).

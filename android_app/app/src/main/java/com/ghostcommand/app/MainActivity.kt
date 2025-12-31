@@ -299,13 +299,11 @@ fun GhostAppEntryPoint() {
     }
 }
 
-// --- LOGIN SCREEN (SECURE v2.08) ---
+// --- LOGIN SCREEN (Simplified - No PIN Required) ---
 @Composable
 fun LoginScreen(lang: String, onToggleLang: () -> Unit, onLogin: (String) -> Unit) {
     var idText by remember { mutableStateOf("") }
-    var pinText by remember { mutableStateOf("") }
     var statusMsg by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) } // Lock button while checking
     
     Box(modifier = Modifier.fillMaxSize().background(BgDark)) {
         // Lang Toggle (Top Right)
@@ -327,7 +325,7 @@ fun LoginScreen(lang: String, onToggleLang: () -> Unit, onLogin: (String) -> Uni
             Text(TR("LOGIN_SUB", lang), color = NeonGreen, fontSize = 12.sp, letterSpacing = 4.sp)
             Spacer(modifier = Modifier.height(30.dp))
             
-            // TARGET ID
+            // TARGET ID (MT5 ID)
             Text(TR("TARGET_ID", lang), color = TextDim, fontSize = 12.sp, modifier = Modifier.align(Alignment.Start))
             OutlinedTextField(
                 value = idText,
@@ -342,25 +340,6 @@ fun LoginScreen(lang: String, onToggleLang: () -> Unit, onLogin: (String) -> Uni
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
-            
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // GHOST PIN (v2.08)
-            Text("GHOST PIN", color = TextDim, fontSize = 12.sp, modifier = Modifier.align(Alignment.Start))
-            OutlinedTextField(
-                value = pinText,
-                onValueChange = { if (it.length <= 6) pinText = it },
-                visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Gold,
-                    unfocusedBorderColor = Color.Gray,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.Gray
-                ),
-                modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword)
-            )
 
             if (statusMsg.isNotEmpty()) {
                 Text(statusMsg, color = NeonRed, fontSize = 12.sp, modifier = Modifier.padding(top = 10.dp))
@@ -370,41 +349,17 @@ fun LoginScreen(lang: String, onToggleLang: () -> Unit, onLogin: (String) -> Uni
 
             Button(
                 onClick = { 
-                    if (idText.isNotBlank() && pinText.isNotBlank()) {
-                         isLoading = true
-                         statusMsg = "Verifying..."
-                         
-                         // FETCH HASH FROM BOT
-                         val db = com.google.firebase.ktx.Firebase.database("https://ghost-app-2fff8-default-rtdb.europe-west1.firebasedatabase.app")
-                         db.getReference("users/$idText/system/auth/pin_hash").get()
-                           .addOnSuccessListener { s ->
-                               val remoteHash = s.value as? String
-                               if (remoteHash == null) {
-                                   // Legacy bot or not set up
-                                   statusMsg = "Refused: Bot not updated (No PIN Hash)."
-                               } else {
-                                   // Hash Input
-                                   val localHash = hashPin(pinText)
-                                   if (localHash == remoteHash) {
-                                       onLogin(idText)
-                                   } else {
-                                       statusMsg = "ACCESS DENIED: Invalid PIN."
-                                   }
-                               }
-                               isLoading = false
-                           }
-                           .addOnFailureListener {
-                               statusMsg = "Connection Error"
-                               isLoading = false
-                           }
-                    } 
+                    if (idText.isNotBlank()) {
+                        onLogin(idText)
+                    } else {
+                        statusMsg = "Please enter your MT5 ID"
+                    }
                 },
-                enabled = !isLoading,
-                colors = ButtonDefaults.buttonColors(containerColor = if (isLoading) Color.DarkGray else NeonGreen),
+                colors = ButtonDefaults.buttonColors(containerColor = NeonGreen),
                 shape = RoundedCornerShape(4.dp),
                 modifier = Modifier.fillMaxWidth().height(50.dp)
             ) {
-                Text(if (isLoading) "VERIFYING..." else TR("CONNECT_BTN", lang), color = Color.Black, fontWeight = FontWeight.Bold)
+                Text(TR("CONNECT_BTN", lang), color = Color.Black, fontWeight = FontWeight.Bold)
             }
         }
     }

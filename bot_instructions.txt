@@ -155,7 +155,7 @@ Ensure that `mode_name` accurately reflects the "PAUSE" state if the Scheduler o
 Add the following variable. The user MUST set this for the app to work.
 ```python
 # SECURITY
-GHOST_PIN = "0000" # CHANGE THIS! 4-6 Digit PIN.
+GHOST_PIN = "1234" # 4-6 Digit PIN for Mobile App authentication
 ```
 
 **Action B**: Update `dashboard.py` (Broadcast Auth Hash)
