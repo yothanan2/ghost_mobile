@@ -5,11 +5,12 @@
 > Task :app:preReleaseBuild UP-TO-DATE
 > Task :app:generateReleaseBuildConfig
 > Task :app:generateReleaseResValues
-> Task :app:checkReleaseAarMetadata
 > Task :app:processReleaseGoogleServices
+> Task :app:checkReleaseAarMetadata
 > Task :app:mapReleaseSourceSetPaths
 > Task :app:generateReleaseResources
 > Task :app:packageReleaseResources
+> Task :app:parseReleaseLocalResources
 > Task :app:createReleaseCompatibleScreenManifests
 > Task :app:extractDeepLinksRelease
 
@@ -19,8 +20,8 @@ Setting the namespace via the package attribute in the source AndroidManifest.xm
 Recommendation: remove package="com.ghostcommand.app" from the source AndroidManifest.xml: C:\Users\Your Mother\Desktop\Ghost_Mobile_App\android_app\app\src\main\AndroidManifest.xml.
 
 > Task :app:processReleaseManifest
-> Task :app:parseReleaseLocalResources
 > Task :app:javaPreCompileRelease
+> Task :app:mergeReleaseResources
 > Task :app:extractProguardFiles
 > Task :app:mergeReleaseJniLibFolders
 > Task :app:mergeReleaseNativeLibs NO-SOURCE
@@ -28,13 +29,12 @@ Recommendation: remove package="com.ghostcommand.app" from the source AndroidMan
 > Task :app:extractReleaseNativeSymbolTables NO-SOURCE
 > Task :app:mergeReleaseNativeDebugMetadata NO-SOURCE
 > Task :app:processReleaseManifestForPackage
-> Task :app:desugarReleaseFileDependencies
 > Task :app:checkReleaseDuplicateClasses
+> Task :app:desugarReleaseFileDependencies
 > Task :app:mergeReleaseArtProfile
 > Task :app:mergeReleaseShaders
 > Task :app:compileReleaseShaders NO-SOURCE
 > Task :app:generateReleaseAssets UP-TO-DATE
-> Task :app:mergeReleaseResources
 > Task :app:mergeReleaseAssets
 > Task :app:compressReleaseAssets
 > Task :app:collectReleaseDependencies
@@ -48,12 +48,13 @@ Recommendation: remove package="com.ghostcommand.app" from the source AndroidMan
 
 > Task :app:compileReleaseKotlin
 w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/GhostChart.kt:40:9 Variable 'Gold' is never used
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:373:40 Unchecked cast: Any? to Map<String, Any>
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:386:53 Unchecked cast: Any? to Map<String, Any>
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:399:51 Unchecked cast: Any? to Map<String, Any>
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:743:39 Unchecked cast: Any? to Map<String, Any>
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:934:71 'versionCode: Int' is deprecated. Deprecated in Java
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:1044:34 Parameter 'downloadId' is never used
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/GhostChart.kt:52:13 Variable 'density' is never used
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:374:40 Unchecked cast: Any? to Map<String, Any>
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:387:53 Unchecked cast: Any? to Map<String, Any>
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:400:51 Unchecked cast: Any? to Map<String, Any>
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:744:39 Unchecked cast: Any? to Map<String, Any>
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:935:71 'versionCode: Int' is deprecated. Deprecated in Java
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:1045:34 Parameter 'downloadId' is never used
 w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:86:42 Parameter 'lang' is never used
 w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:200:47 Parameter 'lang' is never used
 w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:214:36 Unchecked cast: Any? to Map<String, Any>
@@ -90,5 +91,5 @@ warning: [options] To suppress warnings about obsolete options, use -Xlint:-opti
 > Task :app:lintVitalRelease
 > Task :app:assembleRelease
 
-BUILD SUCCESSFUL in 57s
+BUILD SUCCESSFUL in 56s
 47 actionable tasks: 47 executed

@@ -92,6 +92,7 @@ data class GhostVitals(
     val mode_name: String = "MANUAL", // For Rhythm/Auto Pilot
     // [NEW] Dynamic Currency
     val currency_symbol: String = "",
+    val currency_icon: String = "",
     val currency: String = "USD"
 )
 

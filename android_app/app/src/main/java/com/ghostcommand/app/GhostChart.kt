@@ -48,10 +48,16 @@ fun GhostChart(
     
     val priceRange = maxPrice - minPrice
 
-    Canvas(modifier = modifier.background(ChartBg).fillMaxSize().padding(end = 40.dp)) {
-        val w = size.width
+    Canvas(modifier = modifier.background(ChartBg).fillMaxSize()) {
+        val density = this.density // Access density from DrawScope
+        val rightMargin = 40.dp.toPx()
+        val w = size.width - rightMargin // Actual chart drawing width
         val h = size.height
-        val candleWidth = w / candles.size
+        
+        // [CRASH FIX] Safety check for zero/negative width
+        if (w <= 0f) return@Canvas
+
+        val candleWidth = w / candles.size.toFloat() // Use Float division
         
         // Safe Range
         val safeRange = if (priceRange == 0f) 1f else priceRange
@@ -93,7 +99,8 @@ fun GhostChart(
                     textMeasurer = textMeasurer,
                     text = label,
                     topLeft = Offset(w + 5f, y - 20f),
-                    style = TextStyle(color = color, fontSize = 10.sp)
+                    style = TextStyle(color = color, fontSize = 10.sp),
+                    softWrap = false
                 )
             }
         }
@@ -118,7 +125,8 @@ fun GhostChart(
                 textMeasurer = textMeasurer,
                 text = String.format("%.2f", price),
                 topLeft = Offset(w + 5f, yPrice - 10f),
-                style = TextStyle(color = Color.White, fontSize = 10.sp, background = Color.DarkGray)
+                style = TextStyle(color = Color.White, fontSize = 10.sp, background = Color.DarkGray),
+                softWrap = false
             )
         }
     }

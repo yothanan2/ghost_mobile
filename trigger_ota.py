@@ -20,10 +20,10 @@ def trigger_update():
 
     # 2. Define Update Payload
     update_data = {
-        "code": 34,
-        "name": "2.14",
-        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.14/Ghost_v2.14_Release.apk",
-        "changelog": "v2.14 STABILITY PATCH:\n\n1. ANTI-CRASH UPGRADE: Wrapped all telemetry in safety armor.\n2. ROBUSTNESS: App will no longer force-close if server data is unexpected.",
+        "code": 35,
+        "name": "2.15",
+        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.15/Ghost_v2.15_Release.apk",
+        "changelog": "v2.15 CRASH HOTFIX:\n\n1. CANVAS FIX: Resolved 'maxWidth' layout crash on startup.\n2. RENDER ENGINE: Refactored chart drawing to be safer on all screens.",
         "mandatory": True,
         "timestamp": {".sv": "timestamp"}
     }
