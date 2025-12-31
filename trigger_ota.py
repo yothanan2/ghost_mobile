@@ -20,19 +20,11 @@ def trigger_update():
 
     # 2. Define Update Payload
     version_data = {
-        "code": 31,                 
-        "name": "2.11",             
-        "code": 32,                 
-        "name": "2.12",             
-        "mandatory": False,          
-        "changelog": "v2.12:\n\n1. CONTINUOUS CHART: Watch the market 24/7, even without active trades!\n2. P/L FIX: Corrected Floating Profit calculation (stripped Bonus).\n3. PERFORMANCE: Removed legacy chart code for smoother UI.",
-        "changelog_map": {
-            "en": "v2.12:\n\n1. CONTINUOUS CHART: Watch the market 24/7, even without active trades!\n2. P/L FIX: Corrected Floating Profit calculation (stripped Bonus).\n3. PERFORMANCE: Removed legacy chart code for smoother UI.",
-            "th": "v2.12:\n\n1. กราฟต่อเนื่อง: ดูตลาดได้ตลอด 24/7 แม้ไม่มีการเทรด!\n2. แก้ไข P/L: แก้ไขการคำนวณกำไรลอยตัว (ไม่รวมโบนัส).\n3. ประสิทธิภาพ: ลบรหัสกราฟเก่าเพื่อ UI ที่ราบรื่นขึ้น.",
-            "ru": "v2.12:\n\n1. НЕПРЕРЫВНЫЙ ГРАФИК: Следите за рынком 24/7, даже без активных сделок!\n2. ИСПРАВЛЕНИЕ P/L: Исправлен расчет плавающей прибыли (без бонуса).\n3. ПРОИЗВОДИТЕЛЬНОСТЬ: Удален устаревший код графика для более плавной работы интерфейса.",
-            "es": "v2.12:\n\n1. GRÁFICO CONTINUO: ¡Observe el mercado 24/7, incluso sin operaciones activas!\n2. CORRECCIÓN P/L: Cálculo de ganancias flotantes corregido (sin bonificación).\n3. RENDIMIENTO: Código de gráfico heredado eliminado para una interfaz de usuario más fluida."
-        },
-        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.12/Ghost_v2.12_Release.apk",
+        "code": 33,
+        "name": "2.13",
+        "mandatory": True,
+        "changelog": "v2.13 HOTFIX:\n\n1. CRASH FIX: Resolved stability issue with Live Chart data parsing.\n2. STABILITY: Improved handling of real-time market data.",
+        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.13/Ghost_v2.13_Release.apk",
         "timestamp": {".sv": "timestamp"}
     }
 

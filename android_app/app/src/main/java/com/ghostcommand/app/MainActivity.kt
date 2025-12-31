@@ -368,15 +368,23 @@ fun MainScreen(botId: String, lang: String, onToggleLang: () -> Unit, onLogout: 
                 try {
                     val data = s.value as? Map<String, Any> ?: return
                     
-                    chartPrice = (data["price"] as? Number)?.toFloat() ?: 0f
+                    fun safeFloat(v: Any?): Float {
+                        return when (v) {
+                            is Number -> v.toFloat()
+                            is String -> v.toFloatOrNull() ?: 0f
+                            else -> 0f
+                        }
+                    }
+                    
+                    chartPrice = safeFloat(data["price"])
                     
                     // Parse candle data
                     val candleData = data["candle"] as? Map<String, Any>
                     if (candleData != null) {
-                        val o = (candleData["o"] as? Number)?.toFloat() ?: 0f
-                        val h = (candleData["h"] as? Number)?.toFloat() ?: 0f
-                        val l = (candleData["l"] as? Number)?.toFloat() ?: 0f
-                        val c = (candleData["c"] as? Number)?.toFloat() ?: 0f
+                        val o = safeFloat(candleData["o"])
+                        val h = safeFloat(candleData["h"])
+                        val l = safeFloat(candleData["l"])
+                        val c = safeFloat(candleData["c"])
                         val ts = System.currentTimeMillis()
                         
                         // Keep last 50 candles in memory
@@ -387,9 +395,9 @@ fun MainScreen(botId: String, lang: String, onToggleLang: () -> Unit, onLogout: 
                     val linesData = data["lines"] as? Map<String, Any>
                     chartLines = if (linesData != null) {
                         TradeLines(
-                            entry = (linesData["entry"] as? Number)?.toFloat() ?: 0f,
-                            sl = (linesData["sl"] as? Number)?.toFloat() ?: 0f,
-                            tp = (linesData["tp"] as? Number)?.toFloat() ?: 0f
+                            entry = safeFloat(linesData["entry"]),
+                            sl = safeFloat(linesData["sl"]),
+                            tp = safeFloat(linesData["tp"])
                         )
                     } else null
                 } catch (e: Exception) {
