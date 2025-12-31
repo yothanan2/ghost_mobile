@@ -19,18 +19,18 @@ def trigger_update():
         return
 
     # 2. Define Update Payload
-    version_data = {
-        "code": 33,
-        "name": "2.13",
+    update_data = {
+        "code": 34,
+        "name": "2.14",
+        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.14/Ghost_v2.14_Release.apk",
+        "changelog": "v2.14 STABILITY PATCH:\n\n1. ANTI-CRASH UPGRADE: Wrapped all telemetry in safety armor.\n2. ROBUSTNESS: App will no longer force-close if server data is unexpected.",
         "mandatory": True,
-        "changelog": "v2.13 HOTFIX:\n\n1. CRASH FIX: Resolved stability issue with Live Chart data parsing.\n2. STABILITY: Improved handling of real-time market data.",
-        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.13/Ghost_v2.13_Release.apk",
         "timestamp": {".sv": "timestamp"}
     }
 
     # 3. Push to 'system/version' (Correct Path per MainActivity.kt)
     ref = db.reference('system/version')
-    ref.set(version_data)
+    ref.set(update_data)
     
     print("\n📡 UPDATE SIGNAL SENT!")
     print(f"   Version: {version_data['name']} (Code {version_data['code']})")

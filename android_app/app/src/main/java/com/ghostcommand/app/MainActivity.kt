@@ -347,8 +347,12 @@ fun MainScreen(botId: String, lang: String, onToggleLang: () -> Unit, onLogout: 
         val rules = database.getReference("users/$botId/system/vitals")
         val listener = object : com.google.firebase.database.ValueEventListener {
             override fun onDataChange(s: com.google.firebase.database.DataSnapshot) {
-                val v = s.getValue(GhostVitals::class.java)
-                if (v != null) vitals = v
+                try {
+                    val v = s.getValue(GhostVitals::class.java)
+                    if (v != null) vitals = v
+                } catch (e: Exception) {
+                    // Prevent crash on bad data
+                }
             }
             override fun onCancelled(e: com.google.firebase.database.DatabaseError) {}
         }
@@ -480,9 +484,13 @@ fun TacticalDashboard(
     DisposableEffect(botId) {
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                // Safety: Map snapshot to object, use defaults if keys missing
-                vitals = snapshot.getValue(GhostVitals::class.java) ?: GhostVitals()
-                connectionState = "● ONLINE"
+                try {
+                    // Safety: Map snapshot to object, use defaults if keys missing
+                    vitals = snapshot.getValue(GhostVitals::class.java) ?: GhostVitals()
+                    connectionState = "● ONLINE"
+                } catch (e: Exception) {
+                    connectionState = "⚠️ DATA ERR"
+                }
             }
             override fun onCancelled(error: DatabaseError) { connectionState = "⚠️ ERROR" }
         }
