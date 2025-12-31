@@ -1,0 +1,59 @@
+[INSTRUCTIONS FOR VPS CODING AGENT]
+
+SUBJECT: Enable Continuous Real-Time Chart Broadcasting (24/7)
+SEVERITY: Low (Feature Request)
+TARGET FILE: dashboard.py
+
+CONTEXT:
+The Ghost Mobile App v2.12 now supports a real-time chart that is always visible.
+Currently, the bot only broadcasts chart data when a trade is active.
+We need to change this to broadcast *always* (or at least whenever market data is refreshed).
+
+TASK:
+Modify `dashboard.py` to call `uplink.broadcast_live_chart()` (or equivalent logic) continuously in the main loop, not just inside the trade logic.
+
+INSTRUCTIONS:
+
+1.  **Locate the Main Loop**: In `dashboard.py`, find the `update_ticker` or the main `while True` loop where `brain.analyze()` is called.
+2.  **Find Chart Broadcast Logic**: Look for where `live_chart` data is constructed and sent to Firebase. It might be inside `execution_engine.py` or `dashboard.py`.
+    *   *Search Hint*: Look for `"live_chart"` or `broadcast_chart`.
+3.  **Refactor**:
+    *   If the logic is `if active_trade: send_chart()`, REMOVE the `if`.
+    *   Use `uplink.broadcast_live_chart(symbol, price, candles, trade_lines=None)`
+    *   Pass `None` for `trade_lines` if no trade is active.
+    *   Pass the actual `TradeLines` (Entry, SL, TP) if a trade *is* active.
+
+IMPORTANT:
+- Ensure you do not flood Firebase. Broadcasting once every 1-5 seconds is sufficient.
+- If `trade_lines` are missing/None, the App will simply draw the candles without the lines (which is what we want for "No Active Trade" mode).
+
+[EXAMPLE LOGIC PATTERN]
+
+```python
+# In dashboard.py loop:
+
+# 1. Get Market Data
+df = self.brain.get_market_data()
+
+# 2. Prepare Data
+current_price = df['close'].iloc[-1]
+last_candle = { 'o': ..., 'h': ..., 'l': ..., 'c': ... }
+
+# 3. Check Active Trade for Lines
+lines = None
+if self.executor.active_trade:
+     lines = { 
+         'entry': self.executor.active_trade['entry'],
+         'sl': self.executor.active_trade['sl'],
+         'tp': self.executor.active_trade['tp']
+     }
+
+# 4. BROADCAST ALWAYS
+self.uplink.broadcast_chart(current_price, last_candle, lines)
+```
+
+VERIFICATION:
+- Restart Bot.
+- Open Mobile App.
+- Verify Chart is visible immediately (candles moving).
+- Verify "Waiting for Trade..." or similar is NOT blocking the view.

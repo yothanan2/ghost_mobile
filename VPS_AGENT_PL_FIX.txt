@@ -1,0 +1,37 @@
+[INSTRUCTIONS FOR VPS CODING AGENT]
+
+SUBJECT: Fix for High Floating P/L Display on Ghost Mobile App
+SEVERITY: High (User Confusion)
+TARGET FILE: dashboard.py
+
+CONTEXT:
+The Ghost Mobile App v2.11 calculates Floating P/L locally using the formula: `Equity - Balance`.
+However, MT5 accounts often have "Credit" (Deposit Bonus).
+MT5 Formula: `Equity = Balance + Credit + Profit`.
+Current Logic: `Equity - Balance = Profit + Credit`.
+Result: The user sees their Credit (Bonus) significantly inflating their "Floating Profit".
+
+TASK:
+Modify the `sync_telemetry` function in `dashboard.py` to strip the Credit artifact from the P/L calculation by adding it to the reported Balance.
+
+INSTRUCTIONS:
+1. Open `dashboard.py`.
+2. Locate the `sync_telemetry` method (approx line 993).
+3. Inside the `broadcast_vitals` dictionary, find the `"balance"` key.
+4. Update the value to include `getattr(info, 'credit', 0.0)`.
+
+CODE CHANGE:
+
+[BEFORE]
+"equity": info.equity,
+"balance": info.balance,
+"rsi": u_rsi,
+
+[AFTER]
+"equity": info.equity,
+"balance": info.balance + getattr(info, 'credit', 0.0), # [FIX] Include Credit for App P/L Calc
+"rsi": u_rsi,
+
+VERIFICATION:
+- Restart the Dashboard.
+- The Mobile App should now show a Floating P/L that matches the actual open trade profit, excluding the bonus credit.

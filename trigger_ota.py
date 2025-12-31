@@ -22,15 +22,18 @@ def trigger_update():
     version_data = {
         "code": 31,                 
         "name": "2.11",             
+        "code": 32,                 
+        "name": "2.12",             
         "mandatory": False,          
-        "changelog": "🚫🛡️ v2.11 Security Update\n- GHOST PIN REMOVED: Simplified login process\n- Only MT5 ID required for connection",
+        "changelog": "v2.12:\n\n1. CONTINUOUS CHART: Watch the market 24/7, even without active trades!\n2. P/L FIX: Corrected Floating Profit calculation (stripped Bonus).\n3. PERFORMANCE: Removed legacy chart code for smoother UI.",
         "changelog_map": {
-            "en": "🚫🛡️ v2.11 Security Update\n- PIN REMOVED: Simplified login\n- Only MT5 ID required",
-            "th": "🚫🛡️ อัปเดต v2.11\n- ลบ PIN: เข้าสู่ระบบง่ายขึ้น\n- ใช้แค่ MT5 ID เท่านั้น",
-            "ru": "🚫🛡️ v2.11\n- PIN УДАЛЕН: Живой вход\n- Только MT5 ID",
-            "es": "🚫🛡️ v2.11\n- PIN ELIMINADO: Inicio simplificado\n- Solo requiere MT5 ID"
+            "en": "v2.12:\n\n1. CONTINUOUS CHART: Watch the market 24/7, even without active trades!\n2. P/L FIX: Corrected Floating Profit calculation (stripped Bonus).\n3. PERFORMANCE: Removed legacy chart code for smoother UI.",
+            "th": "v2.12:\n\n1. กราฟต่อเนื่อง: ดูตลาดได้ตลอด 24/7 แม้ไม่มีการเทรด!\n2. แก้ไข P/L: แก้ไขการคำนวณกำไรลอยตัว (ไม่รวมโบนัส).\n3. ประสิทธิภาพ: ลบรหัสกราฟเก่าเพื่อ UI ที่ราบรื่นขึ้น.",
+            "ru": "v2.12:\n\n1. НЕПРЕРЫВНЫЙ ГРАФИК: Следите за рынком 24/7, даже без активных сделок!\n2. ИСПРАВЛЕНИЕ P/L: Исправлен расчет плавающей прибыли (без бонуса).\n3. ПРОИЗВОДИТЕЛЬНОСТЬ: Удален устаревший код графика для более плавной работы интерфейса.",
+            "es": "v2.12:\n\n1. GRÁFICO CONTINUO: ¡Observe el mercado 24/7, incluso sin operaciones activas!\n2. CORRECCIÓN P/L: Cálculo de ganancias flotantes corregido (sin bonificación).\n3. RENDIMIENTO: Código de gráfico heredado eliminado para una interfaz de usuario más fluida."
         },
-        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.11/Ghost_v2.11_Release.apk"
+        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.12/Ghost_v2.12_Release.apk",
+        "timestamp": {".sv": "timestamp"}
     }
 
     # 3. Push to 'system/version' (Correct Path per MainActivity.kt)

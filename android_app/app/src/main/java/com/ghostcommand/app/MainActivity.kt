@@ -717,66 +717,6 @@ fun TacticalDashboard(
             Text(engineText, color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Bold)
         }
         
-        // --- 8. GHOST CHART (v2.07 Real-Time) ---
-        var chartData by remember { mutableStateOf<Map<String, Any>?>(null) }
-        DisposableEffect(Unit) {
-            val ref = database.getReference("users/$botId/live_chart")
-            val listener = object : ValueEventListener {
-                override fun onDataChange(s: DataSnapshot) {
-                    chartData = s.value as? Map<String, Any>
-                }
-                override fun onCancelled(e: DatabaseError) {}
-            }
-            ref.addValueEventListener(listener)
-            onDispose { ref.removeEventListener(listener) }
-        }
-
-        if (chartData != null) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF0A0A0A)),
-                modifier = Modifier.fillMaxWidth().height(250.dp)
-            ) {
-                Column(Modifier.padding(8.dp)) {
-                    Text("GHOST VISUALIZER", color = NeonGreen, fontSize = 10.sp, fontFamily = FontFamily.Monospace)
-                    
-                    // Parse Data
-                    val price = (chartData!!["price"] as? Number)?.toFloat() ?: 0f
-                    val cData = chartData!!["candle"] as? Map<String, Any>
-                    val lData = chartData!!["lines"] as? Map<String, Any>
-                    
-                    // Construct formatted objects
-                    // For now, simplify: we just pass the raw data or mock a single candle if list not sent?
-                    // Let's assume the bot sends a list of history. If not, chart might be empty.
-                    // To be safe, we'll pass an empty list if data is missing, so app doesn't crash.
-                    val candles = mutableListOf<Candle>() 
-                    // (Expand parsing logic here if needed, or update GhostChart to accept raw maps)
-                    // For prototype, let's create a single candle from the 'candle' key just to show it flows.
-                    if (cData != null) {
-                         candles.add(Candle(
-                             (cData["o"] as Number).toFloat(),
-                             (cData["h"] as Number).toFloat(),
-                             (cData["l"] as Number).toFloat(),
-                             (cData["c"] as Number).toFloat(),
-                             0L
-                         ))
-                    }
-                    val tLines = if (lData != null) {
-                        TradeLines(
-                            (lData["entry"] as Number).toFloat(),
-                            (lData["sl"] as Number).toFloat(),
-                            (lData["tp"] as Number).toFloat()
-                        )
-                    } else null
-
-                    GhostChart(price = price, candles = candles, lines = tLines, modifier = Modifier.fillMaxSize())
-                }
-            }
-        } else {
-             Spacer(modifier = Modifier.height(16.dp))
-             Text("CHART OFFLINE (NO ACTIVE TRADE)", color = Color.Gray, fontSize = 10.sp, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
-        }
-        
         // --- 9. NEWS RADAR (v2.07) ---
         // (Simple text ticker for now)
         var news by remember { mutableStateOf<String?>(null) }
