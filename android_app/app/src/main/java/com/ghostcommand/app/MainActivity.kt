@@ -646,6 +646,7 @@ fun TacticalDashboard(
                         price = chartPrice,
                         candles = chartCandles,
                         lines = chartLines,
+                        onClose = { cmdRef.push().setValue(mapOf("action" to "CLOSE_ALL")) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(200.dp)

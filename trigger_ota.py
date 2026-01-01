@@ -20,11 +20,11 @@ def trigger_update():
 
     # 2. Define Update Payload
     update_data = {
-        "code": 35,
-        "name": "2.15",
-        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.15/Ghost_v2.15_Release.apk",
-        "changelog": "v2.15 CRASH HOTFIX:\n\n1. CANVAS FIX: Resolved 'maxWidth' layout crash on startup.\n2. RENDER ENGINE: Refactored chart drawing to be safer on all screens.",
-        "mandatory": True,
+        "code": 36,
+        "name": "2.16",
+        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.16/Ghost_v2.16_Release.apk",
+        "changelog": "v2.16 CHART UPGRADE:\n\n1. INTERACTIVE CHART: Added 'CLOSE' button directly on the chart.\n2. LIVE SIGNALS: Chart background pulses GREEN (Win) or RED (Loss) based on live price vs TP/SL.",
+        "mandatory": False,
         "timestamp": {".sv": "timestamp"}
     }
 
