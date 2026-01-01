@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.IgnoreExtraProperties
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
@@ -70,30 +71,31 @@ val Gold = Color(0xFFFFD700)     // For Authority (Boss Mode)
 val BarBg = Color(0xFF333333)    // Dark track for progress bars
 
 // --- DATA MODELS ---
+@IgnoreExtraProperties
 data class GhostVitals(
-    val equity: Double = 0.0,
-    val balance: Double = 0.0,
-    val rsi: Double = 50.0,
-    val trend: String = "SCANNING",
-    val active_trades: Int = 0,
+    var equity: Double = 0.0,
+    var balance: Double = 0.0,
+    var rsi: Double = 50.0,
+    var trend: String = "SCANNING",
+    var active_trades: Int = 0,
     // [NEW] Flight Deck Metrics (Defaults for safety)
-    val adx: Double = 0.0,
-    val atr: Double = 0.0,
-    val confidence: Double = 0.0,
-    val daily_profit: Double = 0.0,
-    val daily_target: Double = 60.0,
-    val auto_god_mode: Boolean = true,
+    var adx: Double = 0.0,
+    var atr: Double = 0.0,
+    var confidence: Double = 0.0,
+    var daily_profit: Double = 0.0,
+    var daily_target: Double = 60.0,
+    var auto_god_mode: Boolean = true,
     // [NEW] V2.01 State Sync
-    val swarm_mode: Boolean = false,
-    val use_firewall: Boolean = true,
-    val whale_tracker: Boolean = true, // SR Filter
-    val auto_rev: Boolean = false,
-    val risk_percent: Double = 1.5,
-    val mode_name: String = "MANUAL", // For Rhythm/Auto Pilot
+    var swarm_mode: Boolean = false,
+    var use_firewall: Boolean = true,
+    var whale_tracker: Boolean = true, // SR Filter
+    var auto_rev: Boolean = false,
+    var risk_percent: Double = 1.5,
+    var mode_name: String = "MANUAL", // For Rhythm/Auto Pilot
     // [NEW] Dynamic Currency
-    val currency_symbol: String = "",
-    val currency_icon: String = "",
-    val currency: String = "USD"
+    var currency_symbol: String = "",
+    var currency_icon: String = "",
+    var currency: String = "USD"
 )
 
 data class TradeRecord(

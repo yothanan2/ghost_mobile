@@ -20,10 +20,10 @@ def trigger_update():
 
     # 2. Define Update Payload
     update_data = {
-        "code": 40,
-        "name": "2.20",
-        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.20/Ghost_v2.20_Release.apk",
-        "changelog": "v2.20 CRITICAL FIX:\n\n1. MISSING BALANCE: Fixed critical path error causing Balance/Equity to show $0.00.\n2. UNIFIED DATA: Main Header and Dashboard now read from the same live source.",
+        "code": 41,
+        "name": "2.21",
+        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.21/Ghost_v2.21_Release.apk",
+        "changelog": "v2.21 CRITICAL FIX:\n\n1. DATA FORMAT FIX: Resolved JSON deserialization issue preventing Balance/Equity updates on some devices.\n2. STABILITY: Enhanced data parsing robustness.",
         "mandatory": False,
         "timestamp": {".sv": "timestamp"}
     }
