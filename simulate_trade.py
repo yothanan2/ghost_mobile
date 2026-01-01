@@ -106,7 +106,7 @@ def simulate_market(bot_id):
              # If we don't update this, the App shows stale data from Firebase history.
              vitals_payload = {
                  "balance": 5000.00,
-                 "equity": 5000.00 + (current_price - lines['entry']) * 10, # Fake P/L
+                 "equity": 5000.00 + (current_price - lines_data['entry']) * 10, # Fake P/L
                  "daily_profit": 125.00,
                  "daily_target": 500.00,
                  "active_trades": 1,

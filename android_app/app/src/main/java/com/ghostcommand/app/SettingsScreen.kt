@@ -33,9 +33,10 @@ fun SettingsScreen(database: FirebaseDatabase, botId: String, lang: String, vita
         // [v2.09] APP PREFERENCES
         CyberCard {
             Column(Modifier.padding(15.dp)) {
-                Text("APP PREFERENCES", color = NeonBlue, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(TR("APP_PREFERENCES", lang), color = NeonBlue, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(12.dp))
                 
+                // 🔊 Notification Sound
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -51,6 +52,95 @@ fun SettingsScreen(database: FirebaseDatabase, botId: String, lang: String, vita
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = NeonGreen,
                             checkedTrackColor = NeonGreen.copy(alpha = 0.5f)
+                        )
+                    )
+                }
+
+                Spacer(Modifier.height(10.dp))
+
+                // 📳 Haptic Feedback
+                var hapticEnabled by remember { mutableStateOf(prefs.getBoolean("haptic_enabled", true)) }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("📳 " + TR("HAPTIC_FEEDBACK", lang), color = Color.White, fontSize = 14.sp)
+                    Switch(
+                        checked = hapticEnabled,
+                        onCheckedChange = { 
+                            hapticEnabled = it
+                            prefs.edit().putBoolean("haptic_enabled", it).apply()
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = NeonGreen,
+                            checkedTrackColor = NeonGreen.copy(alpha = 0.5f)
+                        )
+                    )
+                }
+
+                Spacer(Modifier.height(10.dp))
+
+                // 📱 Keep Screen On
+                var keepScreenOn by remember { mutableStateOf(prefs.getBoolean("keep_screen_on", false)) }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("📱 " + TR("KEEP_SCREEN_ON", lang), color = Color.White, fontSize = 14.sp)
+                    Switch(
+                        checked = keepScreenOn,
+                        onCheckedChange = { 
+                            keepScreenOn = it
+                            prefs.edit().putBoolean("keep_screen_on", it).apply()
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = NeonGreen,
+                            checkedTrackColor = NeonGreen.copy(alpha = 0.5f)
+                        )
+                    )
+                }
+
+                if (keepScreenOn) {
+                    Spacer(Modifier.height(10.dp))
+                    
+                    // 🌓 OLED Protector
+                    var oledDim by remember { mutableStateOf(prefs.getBoolean("oled_dim", false)) }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("🌓 " + TR("OLED_PROTECTOR", lang), color = Color.White, fontSize = 14.sp)
+                        Switch(
+                            checked = oledDim,
+                            onCheckedChange = { 
+                                oledDim = it
+                                prefs.edit().putBoolean("oled_dim", it).apply()
+                            },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = NeonGreen,
+                                checkedTrackColor = NeonGreen.copy(alpha = 0.5f)
+                            )
+                        )
+                    }
+
+                    Spacer(Modifier.height(15.dp))
+
+                    // 🔅 Screen Brightness
+                    var brightness by remember { mutableStateOf(prefs.getFloat("screen_brightness", -1f)) }
+                    Text("🔅 " + TR("SCREEN_BRIGHTNESS", lang), color = Color.White, fontSize = 14.sp)
+                    Slider(
+                        value = if(brightness < 0) 1f else brightness,
+                        onValueChange = { 
+                            brightness = it
+                            prefs.edit().putFloat("screen_brightness", it).apply()
+                        },
+                        valueRange = 0.01f..1f,
+                        colors = SliderDefaults.colors(
+                            thumbColor = NeonGreen,
+                            activeTrackColor = NeonGreen
                         )
                     )
                 }

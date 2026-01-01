@@ -1,0 +1,33 @@
+---------- VPS AGENT INSTRUCTIONS: GHOST DATA PURGE (PHASE 2) ----------
+
+**THE MYSTERY:** 
+The User sees the Demo MT5 on screen, but the Bot is streaming Real Money Data.
+**THE CAUSE:** 
+Python `MetaTrader5` library connects to the FIRST available terminal.
+You likely have the **Real Account Terminal** running in the background (hidden/minimized/tray) or as a zombie process. The Bot is connecting to THAT one, ignoring the Demo one on your screen.
+
+**THE FIX: "THE BLACKOUT"**
+
+1.  **STOP THE BOT.** Close all Python windows.
+
+2.  **KILL ALL MT5 TERMINALS.**
+    *   Close the visible Demo MT5.
+    *   Open Task Manager.
+    *   Look for `terminal64.exe` or `MetaTrader 5`.
+    *   **End Task** on ALL of them. Make sure the list is empty.
+
+3.  **START ONLY DEMO MT5.**
+    *   Launch *only* the specific Demo Terminal you want to use.
+    *   Verify title bar says: `309... - Demo Account`.
+
+4.  **START THE BOT.**
+    *   Run `py main.py`.
+    *   Watch the console log.
+    *   It should say: `Connected to Account: 309...` (DEMO).
+
+**VERIFICATION:**
+*   Check the App.
+*   It should now show the correct Demo Balance.
+
+--------------------------------------------------------------
+*Technical Explanation: The Python API is blind. It grabs the first handle it finds. If the Real Account was opened earlier, it grabs that handle even if you are looking at the Demo window.*

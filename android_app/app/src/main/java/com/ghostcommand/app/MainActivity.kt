@@ -51,8 +51,11 @@ import android.os.Environment
 import androidx.core.content.FileProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import org.json.JSONObject
 import java.io.File
+import android.view.WindowManager
+import android.view.HapticFeedbackConstants
+import androidx.compose.ui.platform.LocalView
+import android.app.Activity
 
 // [v2.09] Ghost Chart Integration
 import com.ghostcommand.app.GhostChart
@@ -162,9 +165,13 @@ object GhostLingo {
         "TARGET_ID" to "TARGET ID",
         "CONNECT_BTN" to "ESTABLISH LINK",
         "LANG_TOGGLE" to "🇺🇸 EN",
-        "GOD_MODE_AUTO" to "⚡ GOD MODE: AUTO",
-        "GOD_MODE_OFF" to "🛡️ SAFE ESCAPE (OFF)",
-        "EQ_LABEL" to "EQ"
+        "EQ_LABEL" to "EQ",
+        // [v2.22] New Controls
+        "APP_PREFERENCES" to "APP PREFERENCES",
+        "KEEP_SCREEN_ON" to "KEEP SCREEN ON",
+        "SCREEN_BRIGHTNESS" to "BRIGHTNESS",
+        "OLED_PROTECTOR" to "OLED PROTECTOR (DIM)",
+        "HAPTIC_FEEDBACK" to "GHOST PULSE (HAPTICS)"
     )
 
     val TH = mapOf(
@@ -189,10 +196,13 @@ object GhostLingo {
         "TARGET_ID" to "ระบุ ID ปลายทาง",
         "CONNECT_BTN" to "เริ่มการเชื่อมต่อ",
         "LANG_TOGGLE" to "🇹🇭 TH",
-        "GOD_MODE_AUTO" to "⚡ โหมดเทพ: ออโต้",
-
-        "GOD_MODE_OFF" to "🛡️ โหมดปลอดภัย (ปิด)",
-        "EQ_LABEL" to "ยอดเงินในบัญชี" // Equity/Balance
+        "EQ_LABEL" to "ยอดเงินในบัญชี", // Equity/Balance
+        // [v2.22] New Controls
+        "APP_PREFERENCES" to "ตั้งค่าแอป",
+        "KEEP_SCREEN_ON" to "เปิดหน้าจอค้างไว้",
+        "SCREEN_BRIGHTNESS" to "ความสว่างหน้าจอ",
+        "OLED_PROTECTOR" to "โหมดถนอมจอ OLED",
+        "HAPTIC_FEEDBACK" to "ระบบสั่น (Ghost Pulse)"
     )
 }
 
@@ -255,6 +265,42 @@ fun GhostAppEntryPoint() {
         prefs.edit().putBoolean("sound_enabled", soundEnabled).apply()
     }
     
+    val botId = savedId // Helper alias
+    
+    // [v2.22] Screen Persistence & Brightness Logic
+    val hapticEnabled = remember { mutableStateOf(prefs.getBoolean("haptic_enabled", true)) }
+    val keepScreenOn = remember { mutableStateOf(prefs.getBoolean("keep_screen_on", false)) }
+    val brightness = remember { mutableStateOf(prefs.getFloat("screen_brightness", -1f)) }
+    val oledDim = remember { mutableStateOf(prefs.getBoolean("oled_dim", false)) }
+    
+    // OLED Dim Timer
+    var lastInteraction by remember { mutableStateOf(System.currentTimeMillis()) }
+    
+    SideEffect {
+        val window = (context as? Activity)?.window
+        if (window != null) {
+            // 1. Keep Screen On Flag
+            if (keepScreenOn.value) {
+                window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            } else {
+                window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            }
+            
+            // 2. System Brightness Override
+            val lp = window.attributes
+            
+            // Logic: If OLED Dim is ON and we have been idle for 5 mins, force 5% brightness
+            val isIdle = oledDim.value && (System.currentTimeMillis() - lastInteraction > 5 * 60 * 1000)
+            
+            lp.screenBrightness = when {
+                isIdle -> 0.05f
+                brightness.value < 0 -> -1f
+                else -> brightness.value
+            }
+            window.attributes = lp
+        }
+    }
+
     if (savedId.isNotEmpty()) {
         MainScreen(botId = savedId, lang = lang, onToggleLang = ::toggleLang, onLogout = {
             prefs.edit().remove("bot_id").apply()
@@ -274,7 +320,14 @@ fun LoginScreen(lang: String, onToggleLang: () -> Unit, onLogin: (String) -> Uni
     var idText by remember { mutableStateOf("") }
     var statusMsg by remember { mutableStateOf("") }
     
-    Box(modifier = Modifier.fillMaxSize().background(BgDark)) {
+    Box(modifier = Modifier.fillMaxSize().background(BgDark).androidx.compose.ui.input.pointer.pointerInput(Unit) {
+        awaitPointerEventScope {
+            while (true) {
+                awaitPointerEvent()
+                lastInteraction = System.currentTimeMillis()
+            }
+        }
+    }) {
         // Lang Toggle (Top Right)
         Button(
             onClick = onToggleLang, 
@@ -662,34 +715,17 @@ fun TacticalDashboard(
             Spacer(modifier = Modifier.height(20.dp))
         }
 
-        // 5. GOD MODE TOGGLE (Safe Escape)
-        val godModeColor = if (vitals.auto_god_mode) Gold else Color.Gray
-        val godModeText = if (vitals.auto_god_mode) TR("GOD_MODE_AUTO", lang) else TR("GOD_MODE_OFF", lang)
-        
-        Button(
-            onClick = { 
-                // Toggle Logic: Send the OPPOSITE of current state
-                val newState = !vitals.auto_god_mode 
-                val payload = mapOf(
-                    "command" to "UPDATE_CONFIG",
-                    "payload" to mapOf("auto_god_mode" to newState),
-                    "status" to "PENDING",
-                    "timestamp" to System.currentTimeMillis()
-                )
-                cmdRef.push().setValue(payload)
-            },
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-            modifier = Modifier.fillMaxWidth().height(50.dp).border(1.dp, godModeColor, RoundedCornerShape(8.dp)),
-            shape = RoundedCornerShape(8.dp)
-        ) {
-            Text(godModeText, color = godModeColor, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         // 6. PANIC BUTTON
+        val view = LocalView.current
         Button(
-            onClick = { cmdRef.push().setValue(mapOf("action" to "CLOSE_ALL")) },
+            onClick = { 
+                if (hapticEnabled.value) {
+                    view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                }
+                cmdRef.push().setValue(mapOf("action" to "CLOSE_ALL")) 
+            },
             colors = ButtonDefaults.buttonColors(containerColor = NeonRed),
             modifier = Modifier.fillMaxWidth().height(50.dp),
             shape = RoundedCornerShape(8.dp)
@@ -718,18 +754,13 @@ fun TacticalDashboard(
 
         Button(
             onClick = { 
+                if (hapticEnabled.value) {
+                    view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                }
                 if (isManual || isPaused) {
-                     // TURN ON (or OVERRIDE) -> Engage Auto-Scheduler
-                     // If user hits Override, we can either go to Manual or Auto.
-                     // Going to Auto (0000) seems best to "Resume" normal operations if ready.
-                     // But user might want Manual. Let's send them to Auto-Scheduler, 
-                     // because if they wanted Manual they are already effectively paused.
-                     // Actually, user said "Adapt UI to show RESUME or OVERRIDE".
-                     // Let's assume hitting it engages the Auto-Scheduler (Resume).
                      val pl = mapOf("recipe" to "0000: Auto-Scheduler (Sync)")
                      cmdRef.push().setValue(mapOf("payload" to pl))
                 } else {
-                     // TURN OFF -> Manual Mode
                      val pl = mapOf("update_config" to mapOf("MODE_NAME" to "MANUAL"))
                      cmdRef.push().setValue(mapOf("payload" to pl))
                 }
@@ -738,7 +769,7 @@ fun TacticalDashboard(
             modifier = Modifier.fillMaxWidth().height(50.dp),
             shape = RoundedCornerShape(8.dp)
         ) {
-            Text(engineText, color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text(engineText, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
         }
         
         // --- 9. NEWS RADAR (v2.07) ---
@@ -868,13 +899,18 @@ fun DailyHistory(database: com.google.firebase.database.FirebaseDatabase, botId:
                                 Text(trade.time, color = TextDim, fontSize = 12.sp) // [UI FIX] 12sp
                             }
                             
-                            // Center: Type
-                            Text(
-                                trade.type, 
-                                color = if(trade.type == "BUY") NeonGreen else NeonRed, 
-                                fontWeight = FontWeight.Bold, 
-                                fontSize = 12.sp
-                            )
+                            // Center: Type & Status
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                val statusIcon = if (trade.profit >= 0) "✅" else "❌"
+                                Text(statusIcon, fontSize = 12.sp)
+                                Spacer(Modifier.width(4.dp))
+                                Text(
+                                    trade.type, 
+                                    color = if(trade.type == "BUY") NeonGreen else NeonRed, 
+                                    fontWeight = FontWeight.Bold, 
+                                    fontSize = 12.sp
+                                )
+                            }
                             
                             // Right: Profit
                             val pnlColor = if (trade.profit >= 0) NeonGreen else NeonRed

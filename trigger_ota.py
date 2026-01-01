@@ -20,10 +20,10 @@ def trigger_update():
 
     # 2. Define Update Payload
     update_data = {
-        "code": 41,
-        "name": "2.21",
-        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.21/Ghost_v2.21_Release.apk",
-        "changelog": "v2.21 CRITICAL FIX:\n\n1. DATA FORMAT FIX: Resolved JSON deserialization issue preventing Balance/Equity updates on some devices.\n2. STABILITY: Enhanced data parsing robustness.",
+        "code": 42,
+        "name": "2.22",
+        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.22/Ghost_v2.22_Release.apk",
+        "changelog": "v2.22 GHOST SPIRIT PATCH:\n- UI Cleanup: God Mode Removed\n- Readability: White text on command buttons\n- Ghost Pulse: Haptic feedback on tap\n- Visual History: Win/Loss icons (✅/❌)\n- Screen Mastery: Keep Screen On + Brightness Slider\n- OLED Protector: Auto-dimming on idle\n- Full Thai Translation update",
         "mandatory": False,
         "timestamp": {".sv": "timestamp"}
     }
