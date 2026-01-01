@@ -20,10 +20,10 @@ def trigger_update():
 
     # 2. Define Update Payload
     update_data = {
-        "code": 38,
-        "name": "2.18",
-        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.18/Ghost_v2.18_Release.apk",
-        "changelog": "v2.18 BUG FIXES:\n\n1. INVISIBLE CANDLES: Fixed chart scaling issue.\n2. GHOST DATA: Fixed balance showing from previous account after switching.",
+        "code": 39,
+        "name": "2.19",
+        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.19/Ghost_v2.19_Release.apk",
+        "changelog": "v2.19 FINAL FIXES:\n\n1. GHOST DATA REMOVED: Dashboard now properly resets when switching IDs.",
         "mandatory": False,
         "timestamp": {".sv": "timestamp"}
     }

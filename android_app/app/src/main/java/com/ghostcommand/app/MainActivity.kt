@@ -343,7 +343,7 @@ fun MainScreen(botId: String, lang: String, onToggleLang: () -> Unit, onLogout: 
     CheckForUpdates(database, LocalContext.current, lang)
 
     // [VITALS] Live Telemetry for State Sync
-    var vitals by remember { mutableStateOf(GhostVitals()) }
+    var vitals by remember(botId) { mutableStateOf(GhostVitals()) }
     DisposableEffect(botId) {
         val rules = database.getReference("users/$botId/system/vitals")
         val listener = object : com.google.firebase.database.ValueEventListener {
@@ -482,7 +482,7 @@ fun TacticalDashboard(
 ) {
     val vitalsRef = database.getReference("users/$botId/vitals")
     val cmdRef = database.getReference("users/$botId/commands")
-    var vitals by remember { mutableStateOf(GhostVitals()) }
+    var vitals by remember(botId) { mutableStateOf(GhostVitals()) }
     var connectionState by remember { mutableStateOf("SCANNING...") }
 
     DisposableEffect(botId) {
