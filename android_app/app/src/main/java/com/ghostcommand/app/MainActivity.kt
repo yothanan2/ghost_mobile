@@ -345,7 +345,8 @@ fun MainScreen(botId: String, lang: String, onToggleLang: () -> Unit, onLogout: 
     // [VITALS] Live Telemetry for State Sync
     var vitals by remember(botId) { mutableStateOf(GhostVitals()) }
     DisposableEffect(botId) {
-        val rules = database.getReference("users/$botId/system/vitals")
+        // [FIX] Read from ROOT vitals (same as Dashboard/Bot), not system/vitals
+        val rules = database.getReference("users/$botId/vitals")
         val listener = object : com.google.firebase.database.ValueEventListener {
             override fun onDataChange(s: com.google.firebase.database.DataSnapshot) {
                 try {

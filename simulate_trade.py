@@ -24,6 +24,7 @@ def simulate_market(bot_id):
     print("Press CTRL+C to stop.")
 
     ref_chart = db.reference(f"users/{bot_id}/live_chart")
+    ref_vitals = db.reference(f"users/{bot_id}/vitals") # [NEW] Vitals Ref
     ref_cmd = db.reference(f"users/{bot_id}/commands")
 
     # Clear previous commands
@@ -100,6 +101,27 @@ def simulate_market(bot_id):
         # [FIX] Use set() instead of update() to ensure CLEAN state
         try:
              ref_chart.set(payload)
+             
+             # [NEW] Broadcast VITALS (Balance) to clear "Ghost Data"
+             # If we don't update this, the App shows stale data from Firebase history.
+             vitals_payload = {
+                 "balance": 5000.00,
+                 "equity": 5000.00 + (current_price - lines['entry']) * 10, # Fake P/L
+                 "daily_profit": 125.00,
+                 "daily_target": 500.00,
+                 "active_trades": 1,
+                 "currency": "USD",
+                 "currency_symbol": "$",
+                 "confidence": 88.0, # High Authority
+                 "rsi": 55.0,
+                 "adx": 30.0,
+                 "atr": 1.5,
+                 "mode_name": "SIMULATOR",
+                 "auto_god_mode": True,
+                 "timestamp": {".sv": "timestamp"}
+             }
+             ref_vitals.set(vitals_payload)
+             
         except Exception as e:
             pass
 

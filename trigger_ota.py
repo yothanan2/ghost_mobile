@@ -20,10 +20,10 @@ def trigger_update():
 
     # 2. Define Update Payload
     update_data = {
-        "code": 39,
-        "name": "2.19",
-        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.19/Ghost_v2.19_Release.apk",
-        "changelog": "v2.19 FINAL FIXES:\n\n1. GHOST DATA REMOVED: Dashboard now properly resets when switching IDs.",
+        "code": 40,
+        "name": "2.20",
+        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.20/Ghost_v2.20_Release.apk",
+        "changelog": "v2.20 CRITICAL FIX:\n\n1. MISSING BALANCE: Fixed critical path error causing Balance/Equity to show $0.00.\n2. UNIFIED DATA: Main Header and Dashboard now read from the same live source.",
         "mandatory": False,
         "timestamp": {".sv": "timestamp"}
     }
@@ -33,8 +33,8 @@ def trigger_update():
     ref.set(update_data)
     
     print("\n📡 UPDATE SIGNAL SENT!")
-    print(f"   Version: {version_data['name']} (Code {version_data['code']})")
-    print(f"   URL: {version_data['url']}")
+    print(f"   Version: {update_data['name']} (Code {update_data['code']})")
+    print(f"   URL: {update_data['url']}")
     print("   Users should see the popup immediately.")
 
 if __name__ == "__main__":
