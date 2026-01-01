@@ -12,7 +12,6 @@
 > Task :app:packageReleaseResources
 > Task :app:createReleaseCompatibleScreenManifests
 > Task :app:extractDeepLinksRelease
-> Task :app:parseReleaseLocalResources
 
 > Task :app:processReleaseMainManifest
 package="com.ghostcommand.app" found in source AndroidManifest.xml: C:\Users\Your Mother\Desktop\Ghost_Mobile_App\android_app\app\src\main\AndroidManifest.xml.
@@ -20,22 +19,23 @@ Setting the namespace via the package attribute in the source AndroidManifest.xm
 Recommendation: remove package="com.ghostcommand.app" from the source AndroidManifest.xml: C:\Users\Your Mother\Desktop\Ghost_Mobile_App\android_app\app\src\main\AndroidManifest.xml.
 
 > Task :app:processReleaseManifest
-> Task :app:javaPreCompileRelease
 > Task :app:extractProguardFiles
-> Task :app:mergeReleaseResources
+> Task :app:javaPreCompileRelease
 > Task :app:mergeReleaseJniLibFolders
+> Task :app:parseReleaseLocalResources
 > Task :app:mergeReleaseNativeLibs NO-SOURCE
 > Task :app:stripReleaseDebugSymbols NO-SOURCE
 > Task :app:extractReleaseNativeSymbolTables NO-SOURCE
 > Task :app:mergeReleaseNativeDebugMetadata NO-SOURCE
 > Task :app:desugarReleaseFileDependencies
-> Task :app:mergeReleaseShaders
-> Task :app:compileReleaseShaders NO-SOURCE
 > Task :app:mergeReleaseArtProfile
-> Task :app:generateReleaseAssets UP-TO-DATE
+> Task :app:mergeReleaseShaders
 > Task :app:checkReleaseDuplicateClasses
+> Task :app:compileReleaseShaders NO-SOURCE
+> Task :app:generateReleaseAssets UP-TO-DATE
 > Task :app:mergeReleaseAssets
 > Task :app:compressReleaseAssets
+> Task :app:mergeReleaseResources
 > Task :app:collectReleaseDependencies
 > Task :app:sdkReleaseDependencyData
 > Task :app:validateSigningRelease
@@ -47,8 +47,8 @@ Recommendation: remove package="com.ghostcommand.app" from the source AndroidMan
 > Task :app:mergeExtDexRelease
 
 > Task :app:compileReleaseKotlin
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/GhostChart.kt:43:9 Variable 'Gold' is never used
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/GhostChart.kt:93:17 Variable 'density' is never used
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/GhostChart.kt:44:9 Variable 'Gold' is never used
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/GhostChart.kt:97:17 Variable 'density' is never used
 w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:374:40 Unchecked cast: Any? to Map<String, Any>
 w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:387:53 Unchecked cast: Any? to Map<String, Any>
 w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:400:51 Unchecked cast: Any? to Map<String, Any>
@@ -91,5 +91,5 @@ warning: [options] To suppress warnings about obsolete options, use -Xlint:-opti
 > Task :app:lintVitalRelease
 > Task :app:assembleRelease
 
-BUILD SUCCESSFUL in 1m 17s
+BUILD SUCCESSFUL in 55s
 47 actionable tasks: 47 executed

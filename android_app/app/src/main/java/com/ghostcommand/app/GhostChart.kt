@@ -2,6 +2,7 @@ package com.ghostcommand.app
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -52,8 +53,8 @@ fun GhostChart(
         val isLoss = if (isLong) price <= lines.sl else price >= lines.sl
         
         blinkColor = when {
-            isWin -> NeonGreen.copy(alpha = 0.3f)
-            isLoss -> NeonRed.copy(alpha = 0.3f)
+            isWin -> NeonGreen.copy(alpha = 1.0f)
+            isLoss -> NeonRed.copy(alpha = 1.0f)
             else -> Color.Transparent
         }
     } else {
@@ -73,14 +74,17 @@ fun GhostChart(
     )
     
     // Effective Color
-    val activeBlink = if (blinkColor != Color.Transparent) blinkColor.copy(alpha = blinkColor.alpha * blinkAlpha) else Color.Transparent
+    // [UI REFINE] Use higher alpha for border visibility
+    val activeBlink = if (blinkColor != Color.Transparent) blinkColor.copy(alpha = blinkAlpha) else Color.Transparent
 
     // --- LAYOUT ---
-    Box(modifier = modifier.background(ChartBg)) {
+    // [UI REFINE] Blink is now a Glowing Border
+    Box(
+        modifier = modifier
+            .background(ChartBg)
+            .border(width = 3.dp, color = activeBlink, shape = RoundedCornerShape(4.dp))
+    ) {
         
-        // 1. BLINK LAYER
-        Box(modifier = Modifier.fillMaxSize().background(activeBlink))
-
         // 2. CHART CANVAS
         val lowestLine = min(lines?.sl ?: Float.MAX_VALUE, lines?.entry ?: Float.MAX_VALUE)
         val highestLine = max(lines?.tp ?: Float.MIN_VALUE, lines?.entry ?: Float.MIN_VALUE)

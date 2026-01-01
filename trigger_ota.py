@@ -20,10 +20,10 @@ def trigger_update():
 
     # 2. Define Update Payload
     update_data = {
-        "code": 36,
-        "name": "2.16",
-        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.16/Ghost_v2.16_Release.apk",
-        "changelog": "v2.16 CHART UPGRADE:\n\n1. INTERACTIVE CHART: Added 'CLOSE' button directly on the chart.\n2. LIVE SIGNALS: Chart background pulses GREEN (Win) or RED (Loss) based on live price vs TP/SL.",
+        "code": 37,
+        "name": "2.17",
+        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.17/Ghost_v2.17_Release.apk",
+        "changelog": "v2.17 UI POLISH:\n\n1. GLOW FRAME: Chart now has a pulsing Neon Border (Green/Red) instead of a flashing background.\n2. CLEANER LOOK: Discretely alerts you to Take Profit or Stop Loss levels.",
         "mandatory": False,
         "timestamp": {".sv": "timestamp"}
     }
