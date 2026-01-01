@@ -73,36 +73,35 @@ def simulate_market(bot_id):
         oscillation = math.sin(step * 0.1) * 6.0 # +/- 6.0 range (covers TP+5 and SL-3)
         current_price = base_price + oscillation
 
-        # Generate Fake Candles (just for visual filler)
-        candles = []
-        for i in range(10):
-            c_base = base_price + (i * 0.5)
-            candles.append({
-                "o": c_base,
-                "h": c_base + 1.0,
-                "l": c_base - 1.0,
-                "c": c_base + 0.5,
-                "ts": int(time.time()) - (10-i)*60
-            })
-        
+        # Generate ONE Fake Candle (MainActivity expects "candle" singular update)
+        # We make it look like a small doji around current price
+        one_candle = {
+            "o": current_price - 0.2,
+            "h": current_price + 0.5,
+            "l": current_price - 0.5,
+            "c": current_price,
+            "ts": int(time.time())
+        }
+
         # Determine Status
         status = "NEUTRAL"
-        if current_price >= tp: status = "WIN (GREEN BLINK)"
-        if current_price <= sl: status = "LOSS (RED BLINK)"
+        if current_price >= tp: status = "WIN (GREEN GLOW)"
+        if current_price <= sl: status = "LOSS (RED GLOW)"
 
         print(f"Time: {step} | Price: {current_price:.2f} | Status: {status}")
 
         payload = {
             "price": current_price,
-            "candles": candles,
-            "lines": lines_data, # Re-send lines to keep them active until close
+            "candle": one_candle, # [FIX] Singular "candle" for app listener
+            "lines": lines_data, 
             "timestamp": {".sv": "timestamp"}
         }
 
+        # [FIX] Use set() instead of update() to ensure CLEAN state
         try:
-             ref_chart.update(payload)
+             ref_chart.set(payload)
         except Exception as e:
-            pass # Ignore write errors on exit
+            pass
 
         time.sleep(1.0) # 1 sec update rate
         step += 1

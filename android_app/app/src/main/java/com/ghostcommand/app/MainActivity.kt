@@ -362,9 +362,9 @@ fun MainScreen(botId: String, lang: String, onToggleLang: () -> Unit, onLogout: 
     }
 
     // [v2.09] GHOST CHART State
-    var chartPrice by remember { mutableStateOf(0f) }
-    var chartCandles by remember { mutableStateOf<List<Candle>>(emptyList()) }
-    var chartLines by remember { mutableStateOf<TradeLines?>(null) }
+    var chartPrice by remember(botId) { mutableStateOf(0f) }
+    var chartCandles by remember(botId) { mutableStateOf<List<Candle>>(emptyList()) }
+    var chartLines by remember(botId) { mutableStateOf<TradeLines?>(null) }
     
     DisposableEffect(botId) {
         val chartRef = database.getReference("users/$botId/live_chart")
@@ -392,8 +392,11 @@ fun MainScreen(botId: String, lang: String, onToggleLang: () -> Unit, onLogout: 
                         val c = safeFloat(candleData["c"])
                         val ts = System.currentTimeMillis()
                         
-                        // Keep last 50 candles in memory
-                        chartCandles = (chartCandles + Candle(o, h, l, c, ts)).takeLast(50)
+                        // [FIX] Filter out Zero/Bad candles that break scale
+                        if (c > 0f && o > 0f) {
+                             // Keep last 50 candles in memory
+                             chartCandles = (chartCandles + Candle(o, h, l, c, ts)).takeLast(50)
+                        }
                     }
                     
                     // Parse trade lines

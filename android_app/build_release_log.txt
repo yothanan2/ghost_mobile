@@ -1,17 +1,31 @@
-﻿> Task :app:clean
+﻿Starting a Gradle Daemon (subsequent builds will be faster)
+gradle.bat : Warning: SDK processing. This version only understands SDK XML versions up 
+to 3 but an SDK XML file of version 4 was encountered. This can happen if you use 
+versions of Android Studio and the command-line tools that were released at different 
+times.
+At C:\Users\Your Mother\Desktop\Ghost_Mobile_App\build_release.ps1:20 char:1
++ & $gradleDistBin clean assembleRelease --stacktrace 2>&1 | Out-File - ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Warning: SDK pr...ifferent times.:String) [ 
+   ], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+> Task :app:clean
 > Task :app:buildKotlinToolingMetadata
 > Task :app:checkKotlinGradlePluginConfigurationErrors
 > Task :app:preBuild UP-TO-DATE
 > Task :app:preReleaseBuild UP-TO-DATE
 > Task :app:generateReleaseBuildConfig
 > Task :app:generateReleaseResValues
-> Task :app:checkReleaseAarMetadata
 > Task :app:processReleaseGoogleServices
+> Task :app:checkReleaseAarMetadata
 > Task :app:mapReleaseSourceSetPaths
 > Task :app:generateReleaseResources
 > Task :app:packageReleaseResources
 > Task :app:createReleaseCompatibleScreenManifests
 > Task :app:extractDeepLinksRelease
+> Task :app:parseReleaseLocalResources
+> Task :app:mergeReleaseResources
 
 > Task :app:processReleaseMainManifest
 package="com.ghostcommand.app" found in source AndroidManifest.xml: C:\Users\Your Mother\Desktop\Ghost_Mobile_App\android_app\app\src\main\AndroidManifest.xml.
@@ -19,23 +33,21 @@ Setting the namespace via the package attribute in the source AndroidManifest.xm
 Recommendation: remove package="com.ghostcommand.app" from the source AndroidManifest.xml: C:\Users\Your Mother\Desktop\Ghost_Mobile_App\android_app\app\src\main\AndroidManifest.xml.
 
 > Task :app:processReleaseManifest
-> Task :app:extractProguardFiles
 > Task :app:javaPreCompileRelease
+> Task :app:extractProguardFiles
 > Task :app:mergeReleaseJniLibFolders
-> Task :app:parseReleaseLocalResources
 > Task :app:mergeReleaseNativeLibs NO-SOURCE
 > Task :app:stripReleaseDebugSymbols NO-SOURCE
 > Task :app:extractReleaseNativeSymbolTables NO-SOURCE
 > Task :app:mergeReleaseNativeDebugMetadata NO-SOURCE
 > Task :app:desugarReleaseFileDependencies
-> Task :app:mergeReleaseArtProfile
 > Task :app:mergeReleaseShaders
-> Task :app:checkReleaseDuplicateClasses
 > Task :app:compileReleaseShaders NO-SOURCE
 > Task :app:generateReleaseAssets UP-TO-DATE
+> Task :app:mergeReleaseArtProfile
+> Task :app:checkReleaseDuplicateClasses
 > Task :app:mergeReleaseAssets
 > Task :app:compressReleaseAssets
-> Task :app:mergeReleaseResources
 > Task :app:collectReleaseDependencies
 > Task :app:sdkReleaseDependencyData
 > Task :app:validateSigningRelease
@@ -51,10 +63,10 @@ w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/m
 w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/GhostChart.kt:97:17 Variable 'density' is never used
 w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:374:40 Unchecked cast: Any? to Map<String, Any>
 w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:387:53 Unchecked cast: Any? to Map<String, Any>
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:400:51 Unchecked cast: Any? to Map<String, Any>
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:745:39 Unchecked cast: Any? to Map<String, Any>
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:936:71 'versionCode: Int' is deprecated. Deprecated in Java
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:1046:34 Parameter 'downloadId' is never used
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:403:51 Unchecked cast: Any? to Map<String, Any>
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:748:39 Unchecked cast: Any? to Map<String, Any>
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:939:71 'versionCode: Int' is deprecated. Deprecated in Java
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:1049:34 Parameter 'downloadId' is never used
 w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:86:42 Parameter 'lang' is never used
 w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:200:47 Parameter 'lang' is never used
 w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:214:36 Unchecked cast: Any? to Map<String, Any>
@@ -64,23 +76,15 @@ w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/m
 w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:372:9 Variable 'firewallState' is never used
 
 > Task :app:compileReleaseJavaWithJavac
-gradle.bat : warning: [options] source value 8 is obsolete and will be removed in a 
-future release
-At C:\Users\Your Mother\Desktop\Ghost_Mobile_App\build_release.ps1:20 char:1
-+ & $gradleDistBin clean assembleRelease --stacktrace 2>&1 | Out-File - ...
-+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (warning: [optio... future release:String) [ 
-   ], RemoteException
-    + FullyQualifiedErrorId : NativeCommandError
- 
+warning: [options] source value 8 is obsolete and will be removed in a future release
 warning: [options] target value 8 is obsolete and will be removed in a future release
 warning: [options] To suppress warnings about obsolete options, use -Xlint:-options.
 3 warnings
 
 > Task :app:generateReleaseLintVitalReportModel
 > Task :app:dexBuilderRelease
-> Task :app:processReleaseJavaRes
 > Task :app:mergeReleaseGlobalSynthetics
+> Task :app:processReleaseJavaRes
 > Task :app:mergeReleaseJavaResource
 > Task :app:mergeDexRelease
 > Task :app:compileReleaseArtProfile
@@ -91,5 +95,5 @@ warning: [options] To suppress warnings about obsolete options, use -Xlint:-opti
 > Task :app:lintVitalRelease
 > Task :app:assembleRelease
 
-BUILD SUCCESSFUL in 55s
+BUILD SUCCESSFUL in 1m 32s
 47 actionable tasks: 47 executed

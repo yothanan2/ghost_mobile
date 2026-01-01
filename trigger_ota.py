@@ -20,10 +20,10 @@ def trigger_update():
 
     # 2. Define Update Payload
     update_data = {
-        "code": 37,
-        "name": "2.17",
-        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.17/Ghost_v2.17_Release.apk",
-        "changelog": "v2.17 UI POLISH:\n\n1. GLOW FRAME: Chart now has a pulsing Neon Border (Green/Red) instead of a flashing background.\n2. CLEANER LOOK: Discretely alerts you to Take Profit or Stop Loss levels.",
+        "code": 38,
+        "name": "2.18",
+        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.18/Ghost_v2.18_Release.apk",
+        "changelog": "v2.18 BUG FIXES:\n\n1. INVISIBLE CANDLES: Fixed chart scaling issue.\n2. GHOST DATA: Fixed balance showing from previous account after switching.",
         "mandatory": False,
         "timestamp": {".sv": "timestamp"}
     }
