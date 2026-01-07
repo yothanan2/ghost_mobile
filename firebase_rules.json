@@ -1,0 +1,42 @@
+{
+    "rules": {
+        ".read": false,
+        ".write": false,
+        "system": {
+            ".read": true,
+            ".write": false
+        },
+        "users": {
+            "$user_id": {
+                // App needs to READ vitals, chart, history, and logs
+                // App needs to WRITE to commands
+                // Bot (Admin) bypasses all these rules.
+                "vitals": {
+                    ".read": true,
+                    ".write": false
+                },
+                "live_chart": {
+                    ".read": true,
+                    ".write": false
+                },
+                "history": {
+                    ".read": true,
+                    ".write": false
+                },
+                "logs": {
+                    ".read": true,
+                    ".write": false
+                },
+                "commands": {
+                    ".read": true,
+                    ".write": true
+                },
+                // Deny access to other random sub-nodes
+                "$other": {
+                    ".read": false,
+                    ".write": false
+                }
+            }
+        }
+    }
+}

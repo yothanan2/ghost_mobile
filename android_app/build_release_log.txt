@@ -5,14 +5,15 @@
 > Task :app:preReleaseBuild UP-TO-DATE
 > Task :app:generateReleaseBuildConfig
 > Task :app:generateReleaseResValues
-> Task :app:checkReleaseAarMetadata
 > Task :app:processReleaseGoogleServices
+> Task :app:checkReleaseAarMetadata
 > Task :app:mapReleaseSourceSetPaths
 > Task :app:generateReleaseResources
 > Task :app:packageReleaseResources
-> Task :app:parseReleaseLocalResources
 > Task :app:createReleaseCompatibleScreenManifests
 > Task :app:extractDeepLinksRelease
+> Task :app:parseReleaseLocalResources
+> Task :app:mergeReleaseResources
 
 > Task :app:processReleaseMainManifest
 package="com.ghostcommand.app" found in source AndroidManifest.xml: C:\Users\Your Mother\Desktop\Ghost_Mobile_App\android_app\app\src\main\AndroidManifest.xml.
@@ -21,7 +22,6 @@ Recommendation: remove package="com.ghostcommand.app" from the source AndroidMan
 
 > Task :app:processReleaseManifest
 > Task :app:javaPreCompileRelease
-> Task :app:mergeReleaseResources
 > Task :app:extractProguardFiles
 > Task :app:mergeReleaseJniLibFolders
 > Task :app:mergeReleaseNativeLibs NO-SOURCE
@@ -29,10 +29,10 @@ Recommendation: remove package="com.ghostcommand.app" from the source AndroidMan
 > Task :app:extractReleaseNativeSymbolTables NO-SOURCE
 > Task :app:mergeReleaseNativeDebugMetadata NO-SOURCE
 > Task :app:desugarReleaseFileDependencies
-> Task :app:mergeReleaseArtProfile
 > Task :app:mergeReleaseShaders
 > Task :app:compileReleaseShaders NO-SOURCE
 > Task :app:generateReleaseAssets UP-TO-DATE
+> Task :app:mergeReleaseArtProfile
 > Task :app:checkReleaseDuplicateClasses
 > Task :app:mergeReleaseAssets
 > Task :app:compressReleaseAssets
@@ -49,28 +49,29 @@ Recommendation: remove package="com.ghostcommand.app" from the source AndroidMan
 > Task :app:compileReleaseKotlin
 w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/GhostChart.kt:44:9 Variable 'Gold' is never used
 w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/GhostChart.kt:97:17 Variable 'density' is never used
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:377:40 Unchecked cast: Any? to Map<String, Any>
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:390:53 Unchecked cast: Any? to Map<String, Any>
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:406:51 Unchecked cast: Any? to Map<String, Any>
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:751:39 Unchecked cast: Any? to Map<String, Any>
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:942:71 'versionCode: Int' is deprecated. Deprecated in Java
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:1052:34 Parameter 'downloadId' is never used
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:86:42 Parameter 'lang' is never used
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:200:47 Parameter 'lang' is never used
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:214:36 Unchecked cast: Any? to Map<String, Any>
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:254:61 Unchecked cast: Any? to Map<String, Any>
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:287:56 Unchecked cast: Any? to Map<String, Any>
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:370:42 Parameter 'lang' is never used
-w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:372:9 Variable 'firewallState' is never used
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:275:9 Variable 'botId' is never used
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:278:9 Variable 'hapticEnabled' is never used
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:439:40 Unchecked cast: Any? to Map<String, Any>
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:452:53 Unchecked cast: Any? to Map<String, Any>
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:468:51 Unchecked cast: Any? to Map<String, Any>
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:544:5 Parameter 'chartPrice' is never used
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:545:5 Parameter 'chartCandles' is never used
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:546:5 Parameter 'chartLines' is never used
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:841:39 Unchecked cast: Any? to Map<String, Any>
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:1060:71 'versionCode: Int' is deprecated. Deprecated in Java
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/MainActivity.kt:1170:34 Parameter 'downloadId' is never used
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:176:42 Parameter 'lang' is never used
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:292:47 Parameter 'lang' is never used
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:306:36 Unchecked cast: Any? to Map<String, Any>
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:346:61 Unchecked cast: Any? to Map<String, Any>
+w: file:///C:/Users/Your%20Mother/Desktop/Ghost_Mobile_App/android_app/app/src/main/java/com/ghostcommand/app/SettingsScreen.kt:379:56 Unchecked cast: Any? to Map<String, Any>
 
 > Task :app:compileReleaseJavaWithJavac
-gradle.bat : warning: [options] source value 8 is obsolete and will be removed in a 
-future release
+gradle.bat : warning: [options] source value 8 is obsolete and will be removed in a future release
 At C:\Users\Your Mother\Desktop\Ghost_Mobile_App\build_release.ps1:20 char:1
 + & $gradleDistBin clean assembleRelease --stacktrace 2>&1 | Out-File - ...
 + ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (warning: [optio... future release:String) [ 
-   ], RemoteException
+    + CategoryInfo          : NotSpecified: (warning: [optio... future release:String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError
  
 warning: [options] target value 8 is obsolete and will be removed in a future release
@@ -79,8 +80,8 @@ warning: [options] To suppress warnings about obsolete options, use -Xlint:-opti
 
 > Task :app:generateReleaseLintVitalReportModel
 > Task :app:dexBuilderRelease
-> Task :app:mergeReleaseGlobalSynthetics
 > Task :app:processReleaseJavaRes
+> Task :app:mergeReleaseGlobalSynthetics
 > Task :app:mergeReleaseJavaResource
 > Task :app:mergeDexRelease
 > Task :app:compileReleaseArtProfile
@@ -91,5 +92,5 @@ warning: [options] To suppress warnings about obsolete options, use -Xlint:-opti
 > Task :app:lintVitalRelease
 > Task :app:assembleRelease
 
-BUILD SUCCESSFUL in 59s
+BUILD SUCCESSFUL in 1m 37s
 47 actionable tasks: 47 executed

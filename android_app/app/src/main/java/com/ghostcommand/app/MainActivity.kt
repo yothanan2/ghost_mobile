@@ -7,8 +7,12 @@ import androidx.activity.ComponentActivity
 // Biometric imports removed v2.11
 import androidx.activity.compose.setContent
 import java.security.MessageDigest
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.consumeAllChanges
+import androidx.compose.ui.input.pointer.changedToDown
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -57,10 +61,10 @@ import android.view.HapticFeedbackConstants
 import androidx.compose.ui.platform.LocalView
 import android.app.Activity
 
-// [v2.09] Ghost Chart Integration
-import com.ghostcommand.app.GhostChart
-import com.ghostcommand.app.Candle
-import com.ghostcommand.app.TradeLines
+// [v2.09] Ghost Chart Integration (REMOVED IN v4.0 FOR FLEET RIG)
+// import com.ghostcommand.app.GhostChart
+// import com.ghostcommand.app.Candle
+// import com.ghostcommand.app.TradeLines
 
 // --- COLORS ---
 // --- COLORS ---
@@ -98,7 +102,10 @@ data class GhostVitals(
     // [NEW] Dynamic Currency
     var currency_symbol: String = "",
     var currency_icon: String = "",
-    var currency: String = "USD"
+    var currency: String = "USD",
+    // [NEW] Fleet Rig & Senate
+    var senate_mode: Boolean = true,
+    var fleet_status: Map<String, Map<String, Any>> = emptyMap()
 )
 
 data class TradeRecord(
@@ -301,16 +308,25 @@ fun GhostAppEntryPoint() {
         }
     }
 
-    if (savedId.isNotEmpty()) {
-        MainScreen(botId = savedId, lang = lang, onToggleLang = ::toggleLang, onLogout = {
-            prefs.edit().remove("bot_id").apply()
-            savedId = ""
-        })
-    } else {
-        LoginScreen(lang = lang, onToggleLang = ::toggleLang, onLogin = { newId ->
-            prefs.edit().putString("bot_id", newId).apply()
-            savedId = newId
-        })
+    Box(modifier = Modifier.fillMaxSize().background(BgDark).pointerInput(Unit) {
+        awaitPointerEventScope {
+            while (true) {
+                awaitPointerEvent()
+                lastInteraction = System.currentTimeMillis()
+            }
+        }
+    }) {
+        if (savedId.isNotEmpty()) {
+            MainScreen(botId = savedId, lang = lang, onToggleLang = ::toggleLang, onLogout = {
+                prefs.edit().remove("bot_id").apply()
+                savedId = ""
+            })
+        } else {
+            LoginScreen(lang = lang, onToggleLang = ::toggleLang, onLogin = { newId ->
+                prefs.edit().putString("bot_id", newId).apply()
+                savedId = newId
+            })
+        }
     }
 }
 
@@ -320,14 +336,7 @@ fun LoginScreen(lang: String, onToggleLang: () -> Unit, onLogin: (String) -> Uni
     var idText by remember { mutableStateOf("") }
     var statusMsg by remember { mutableStateOf("") }
     
-    Box(modifier = Modifier.fillMaxSize().background(BgDark).androidx.compose.ui.input.pointer.pointerInput(Unit) {
-        awaitPointerEventScope {
-            while (true) {
-                awaitPointerEvent()
-                lastInteraction = System.currentTimeMillis()
-            }
-        }
-    }) {
+    Box(modifier = Modifier.fillMaxSize().background(BgDark)) {
         // Lang Toggle (Top Right)
         Button(
             onClick = onToggleLang, 
@@ -536,10 +545,16 @@ fun TacticalDashboard(
     chartCandles: List<Candle>,
     chartLines: TradeLines?
 ) {
+    val context = LocalContext.current
+    val prefs = context.getSharedPreferences("ghost_prefs", Context.MODE_PRIVATE)
     val vitalsRef = database.getReference("users/$botId/vitals")
     val cmdRef = database.getReference("users/$botId/commands")
     var vitals by remember(botId) { mutableStateOf(GhostVitals()) }
     var connectionState by remember { mutableStateOf("SCANNING...") }
+    
+    // [MOBILE RIG] Surgical Close Dialog State
+    var showCloseConfirm by remember { mutableStateOf(false) }
+    var symbolToClose by remember { mutableStateOf("") }
 
     DisposableEffect(botId) {
         val listener = object : ValueEventListener {
@@ -689,27 +704,71 @@ fun TacticalDashboard(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // [v2.09] GHOST CHART (Only show if active trade exists)
-        if (chartCandles.isNotEmpty() && chartPrice > 0f) {
-            CyberCard {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    Text(
-                        "📊 LIVE CHART",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = NeonGreen,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    GhostChart(
-                        price = chartPrice,
-                        candles = chartCandles,
-                        lines = chartLines,
-                        onClose = { cmdRef.push().setValue(mapOf("action" to "CLOSE_ALL")) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                    )
+        // [MOBILE RIG] FLEET RIG (Tactical Pulse)
+        if (vitals.fleet_status.isNotEmpty()) {
+            Text(
+                "🛸 FLEET RIG",
+                color = NeonGreen,
+                fontWeight = FontWeight.Bold,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            
+            // Grid of Symbols
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                val symbols = vitals.fleet_status.keys.toList().chunked(3)
+                symbols.forEach { rowSymbols ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        rowSymbols.forEach { symbol ->
+                            val sData = vitals.fleet_status[symbol] ?: emptyMap<String, Any>()
+                            val signal = sData["signal"] as? String ?: "HOLD"
+                            val conf = (sData["conf"] as? Number)?.toDouble() ?: 0.0
+                            
+                            val chipColor = when(signal) {
+                                "BUY" -> NeonGreen
+                                "SELL" -> NeonRed
+                                else -> Color.Gray
+                            }
+                            
+                            val icon = when(signal) {
+                                "BUY" -> "🟢"
+                                "SELL" -> "🔴"
+                                else -> "💤"
+                            }
+
+                            Card(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(60.dp)
+                                    .border(1.dp, chipColor.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                                    .clickable {
+                                        symbolToClose = symbol
+                                        showCloseConfirm = true
+                                    },
+                                colors = CardDefaults.cardColors(containerColor = CardBg)
+                            ) {
+                                Column(
+                                    modifier = Modifier.fillMaxSize().padding(4.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Text(symbol, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(icon, fontSize = 12.sp)
+                                        Spacer(Modifier.width(4.dp))
+                                        Text("${(conf * 100).toInt()}%", color = chipColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            }
+                        }
+                        // Fill empty space if row is not full
+                        repeat(3 - rowSymbols.size) {
+                            Spacer(Modifier.weight(1f))
+                        }
+                    }
                 }
             }
             Spacer(modifier = Modifier.height(20.dp))
@@ -721,7 +780,7 @@ fun TacticalDashboard(
         val view = LocalView.current
         Button(
             onClick = { 
-                if (hapticEnabled.value) {
+                if (prefs.getBoolean("haptic_enabled", true)) {
                     view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                 }
                 cmdRef.push().setValue(mapOf("action" to "CLOSE_ALL")) 
@@ -754,7 +813,7 @@ fun TacticalDashboard(
 
         Button(
             onClick = { 
-                if (hapticEnabled.value) {
+                if (prefs.getBoolean("haptic_enabled", true)) {
                     view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
                 }
                 if (isManual || isPaused) {
@@ -795,6 +854,29 @@ fun TacticalDashboard(
         if (news != null) {
              Spacer(modifier = Modifier.height(8.dp))
              Text(news!!, color = Gold, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+        }
+
+        // [MOBILE RIG] SURGICAL CLOSE DIALOG
+        if (showCloseConfirm) {
+            AlertDialog(
+                onDismissRequest = { showCloseConfirm = false },
+                containerColor = CardBg,
+                title = { Text("⚡ CLOSE $symbolToClose?", color = NeonRed, fontWeight = FontWeight.Bold) },
+                text = { Text("Kill all active trades for $symbolToClose immediately?", color = Color.White) },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            val payload = mapOf("action" to "CLOSE_SYMBOL", "symbol" to symbolToClose)
+                            cmdRef.push().setValue(mapOf("payload" to payload))
+                            showCloseConfirm = false
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = NeonRed)
+                    ) { Text("EXECUTE CLOSE", color = Color.White, fontWeight = FontWeight.Bold) }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showCloseConfirm = false }) { Text("CANCEL", color = TextDim) }
+                }
+            )
         }
     }
 }

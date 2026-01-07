@@ -184,6 +184,8 @@ fun RiskVault(cmdRef: DatabaseReference, lang: String, vitals: GhostVitals) {
             
             RemoteToggleRow("🔥 FIREWALL", cmdRef, "use_firewall", vitals.use_firewall)
             Spacer(Modifier.height(10.dp))
+            RemoteToggleRow("🏛️ AI SENATE", cmdRef, "use_senate", vitals.senate_mode)
+            Spacer(Modifier.height(10.dp))
             RemoteToggleRow("🐝 SWARM MODE", cmdRef, "swarm_mode", vitals.swarm_mode)
             Spacer(Modifier.height(10.dp))
             RemoteToggleRow("🐋 WHALE RADAR", cmdRef, "use_sr_filter", vitals.whale_tracker)
@@ -455,88 +457,7 @@ fun StrategyConfig(cmdRef: DatabaseReference, lang: String) {
     }
 }
 
-// --- TAB 2: RISK VAULT ---
-@Composable
-fun RiskVault(cmdRef: DatabaseReference, lang: String) {
-    var targetInput by remember { mutableStateOf("") }
-    var firewallState by remember { mutableStateOf(false) } // This should be synced really, but stateless for now
-    
-    // Toggles
-    CyberCard {
-        Column(Modifier.padding(15.dp)) {
-            Text("SAFETY OVERRIDES", color = NeonGreen, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(15.dp))
-            
-            RemoteToggleRow("🔥 FIREWALL", cmdRef, "use_firewall")
-            Spacer(Modifier.height(10.dp))
-            RemoteToggleRow("🐝 SWARM MODE", cmdRef, "swarm_mode")
-            Spacer(Modifier.height(10.dp))
-            RemoteToggleRow("🐋 WHALE RADAR", cmdRef, "use_sr_filter")
-            Spacer(Modifier.height(10.dp))
-            RemoteToggleRow("🔄 AUTO-REVERSAL", cmdRef, "use_adaptive_reversal")
-        }
-    }
-    
-    Spacer(Modifier.height(20.dp))
-    
-    // Daily Target
-    CyberCard {
-        Column(Modifier.padding(15.dp)) {
-            Text("DAILY PROFIT TARGET", color = Gold, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(10.dp))
-            
-            OutlinedTextField(
-                value = targetInput,
-                onValueChange = { targetInput = it },
-                label = { Text("Target Amount ($)", color = Color.Gray) },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Gold,
-                    unfocusedBorderColor = Color.Gray,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
-            
-            Spacer(Modifier.height(15.dp))
-            Button(
-                onClick = { 
-                    if (targetInput.isNotEmpty()) {
-                        sendRemoteCmd(cmdRef, mapOf("daily_target" to targetInput.toFloatOrNull()))
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = NeonGreen),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("UPDATE TARGET", color = Color.Black, fontWeight = FontWeight.Bold)
-            }
-        }
-    }
-}
-
-@Composable
-fun RemoteToggleRow(label: String, cmdRef: DatabaseReference, key: String) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-        Text(label, color = Color.White, fontSize = 14.sp)
-        Row {
-            Button(
-                onClick = { sendRemoteCmd(cmdRef, mapOf(key to true)) },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF112211)),
-                modifier = Modifier.height(30.dp),
-                contentPadding = PaddingValues(0.dp)
-            ) { Text("ON", color = NeonGreen, fontSize = 10.sp) }
-            
-            Spacer(Modifier.width(5.dp))
-            
-            Button(
-                onClick = { sendRemoteCmd(cmdRef, mapOf(key to false)) },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF221111)),
-                modifier = Modifier.height(30.dp),
-                contentPadding = PaddingValues(0.dp)
-            ) { Text("OFF", color = NeonRed, fontSize = 10.sp) }
-        }
-    }
-}
+// --- END OF FILE ---
 
 
 // --- TAB 3: SCHEDULER ---
