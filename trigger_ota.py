@@ -7,7 +7,7 @@ import sys
 DB_URL = "https://ghost-app-2fff8-default-rtdb.europe-west1.firebasedatabase.app/"
 
 def trigger_update():
-    print("🚀 OTA UPDATE TRIGGER: v1.6")
+    print("🚀 OTA UPDATE TRIGGER: v4.02")
     
     # 1. Initialize Firebase
     try:
@@ -20,14 +20,14 @@ def trigger_update():
 
     # 2. Define Update Payload
     update_data = {
-        "code": 44,
-        "name": "4.01",
-        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v4.01/Ghost_v4.01_Release.apk",
-        "changelog": "🔹 PROTCOL 4.01: FLEET GAUGES ONLINE\n- Mini-Gauges (RSI/ADX) in Fleet Rig\n- Gold Integration in Fleet\n- Tactical Telemetry Enrichment",
+        "code": 45,
+        "name": "4.02",
+        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v4.02/Ghost_v4.02_Release.apk",
+        "changelog": "🔹 PROTCOL 4.02: TACTICAL P/L GAUGES\n- Fleet Rig now shows Active P/L per symbol\n- Real-time Profit/Loss Visualization\n- Removed redundant technical indicators",
         "mandatory": False,
         "changelog_map": {
-            "en": "🔹 FLEET GAUGES ONLINE\n- Mini-Gauges (RSI/ADX) in Fleet Rig\n- Gold Integration in Fleet",
-            "th": "🔹 ระบบเกจย่อยใน FLEET RIG\n- แสดงเกจ RSI/ADX สำหรับคู่เงินย่อย\n- รวมทองคำ (GOLD) ในระบบฟลีท"
+            "en": "🔹 TACTICAL P/L GAUGES\n- Fleet Rig now shows real-time P/L for active trades.",
+            "th": "🔹 ระบบเกจกำไร/ขาดทุน (P/L)\n- แสดงกำไร/ขาดทุนแบบเรียลไทม์ใน Fleet Rig รายคู่เงิน"
         },
         "timestamp": {".sv": "timestamp"}
     }
