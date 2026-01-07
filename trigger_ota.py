@@ -20,14 +20,14 @@ def trigger_update():
 
     # 2. Define Update Payload
     update_data = {
-        "code": 45,
-        "name": "4.02",
-        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v4.02/Ghost_v4.02_Release.apk",
-        "changelog": "🔹 PROTCOL 4.02: TACTICAL P/L GAUGES\n- Fleet Rig now shows Active P/L per symbol\n- Real-time Profit/Loss Visualization\n- Removed redundant technical indicators",
+        "code": 46,
+        "name": "4.03",
+        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v4.03/Ghost_v4.03_Release.apk",
+        "changelog": "🔹 PROTCOL 4.03: TACTICAL HEARTBEAT\n- Pulsing 'Glow' effect for active trades (Green/Red)\n- Removed redundant RSI/ADX indicators\n- Enhanced P/L visibility with T-PNL progress bars\n- Streamlined Idle states",
         "mandatory": False,
         "changelog_map": {
-            "en": "🔹 TACTICAL P/L GAUGES\n- Fleet Rig now shows real-time P/L for active trades.",
-            "th": "🔹 ระบบเกจกำไร/ขาดทุน (P/L)\n- แสดงกำไร/ขาดทุนแบบเรียลไทม์ใน Fleet Rig รายคู่เงิน"
+            "en": "🔹 TACTICAL HEARTBEAT\n- Active trades now pulse with glow based on P/L status.",
+            "th": "🔹 ระบบ TACTICAL HEARTBEAT\n- เพิ่มเอฟเฟกต์ไฟกะพริบ (Glow) สำหรับคู่เงินที่ติดออเดอร์ (แดง/เขียว)\n- ตัดข้อมูลอินดิเคเตอร์ที่ไม่จำเป็นออกเพื่อความคล่องตัว"
         },
         "timestamp": {".sv": "timestamp"}
     }

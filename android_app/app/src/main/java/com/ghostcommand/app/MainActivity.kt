@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.animation.core.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -714,6 +715,17 @@ fun TacticalDashboard(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             
+            // [TACTICAL PULSE] P/L Glow Animation
+            val infiniteTransition = rememberInfiniteTransition()
+            val pulseAlpha by infiniteTransition.animateFloat(
+                initialValue = 0.3f,
+                targetValue = 0.8f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(2000, easing = FastOutSlowInEasing),
+                    repeatMode = RepeatMode.Reverse
+                )
+            )
+
             // Grid of Symbols
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 val symbols = vitals.fleet_status.keys.toList().chunked(3)
@@ -726,8 +738,8 @@ fun TacticalDashboard(
                             val sData = vitals.fleet_status[symbol] ?: emptyMap<String, Any>()
                             val signal = sData["signal"] as? String ?: "HOLD"
                             val conf = (sData["conf"] as? Number)?.toDouble() ?: 0.0
-                            val rsi = (sData["rsi"] as? Number)?.toDouble() ?: 50.0
-                            val adx = (sData["adx"] as? Number)?.toDouble() ?: 0.0
+                            val hasTrade = sData["has_trade"] as? Boolean ?: false
+                            val pl = (sData["pl"] as? Number)?.toDouble() ?: 0.0
                             
                             val chipColor = when(signal) {
                                 "BUY" -> NeonGreen
@@ -741,11 +753,20 @@ fun TacticalDashboard(
                                 else -> "💤"
                             }
 
+                            // Glowing Logic
+                            val isProfitable = pl >= 0
+                            val glowColor = if (isProfitable) NeonGreen else NeonRed
+                            val activeGlow = if (hasTrade) glowColor.copy(alpha = pulseAlpha) else Color.Transparent
+
                             Card(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(95.dp) // [UPGRADE] Adjusted for P/L Gauge
-                                    .border(1.dp, chipColor.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                                    .height(90.dp) // [UPGRADE] Tactical Compact
+                                    .border(
+                                        if (hasTrade) 2.dp else 1.dp, 
+                                        if (hasTrade) activeGlow else chipColor.copy(alpha = 0.3f), 
+                                        RoundedCornerShape(8.dp)
+                                    )
                                     .clickable {
                                         symbolToClose = symbol
                                         showCloseConfirm = true
@@ -758,35 +779,29 @@ fun TacticalDashboard(
                                     verticalArrangement = Arrangement.Top
                                 ) {
                                     Text(symbol, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                    // [GAUGES] P/L Focused Intelligence
-                                    val hasTrade = sData["has_trade"] as? Boolean ?: false
-                                    val pl = (sData["pl"] as? Number)?.toDouble() ?: 0.0
                                     
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(icon, fontSize = 11.sp)
-                                        // Hide Confidence if trade is active to make room for P/L
-                                        if (!hasTrade) {
+                                    // [GAUGES] P/L Focused Intelligence
+                                    if (hasTrade) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(icon, fontSize = 11.sp)
+                                        }
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        
+                                        // PROFIT/LOSS GAUGE
+                                        val absPl = Math.abs(pl)
+                                        MiniGauge("T-PNL", absPl, 50.0, glowColor)
+                                        
+                                        val plStr = if (pl >= 0) "+${String.format("%.2f", pl)}" else String.format("%.2f", pl)
+                                        Text(plStr, color = glowColor, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
+                                    } else {
+                                        // Idle State: Just show signal info, no indicators
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(icon, fontSize = 11.sp)
                                             Spacer(Modifier.width(4.dp))
                                             Text("${(conf * 100).toInt()}%", color = chipColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                         }
-                                    }
-                                    
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    
-                                    if (hasTrade) {
-                                        // PROFIT/LOSS GAUGE
-                                        val plColor = if (pl >= 0) NeonGreen else NeonRed
-                                        // Normalize PL for a gauge (e.g. +/- 100 for visual range)
-                                        // Max 500 arbitrarily or dynamic? Let's use 100 for safety.
-                                        val absPl = Math.abs(pl)
-                                        MiniGauge("P/L", absPl, 100.0, plColor)
-                                        
-                                        val plStr = if (pl >= 0) "+${String.format("%.2f", pl)}" else String.format("%.2f", pl)
-                                        Text(plStr, color = plColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                    } else {
-                                        // Idle State: Show RSI just for context as a smaller bar
-                                        val rsi = (sData["rsi"] as? Number)?.toDouble() ?: 50.0
-                                        MiniGauge("RSI", rsi, 100.0, Color.Gray)
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text("PENDING", color = TextDim, fontSize = 8.sp, fontWeight = FontWeight.Bold)
                                     }
                                 }
                             }
