@@ -726,6 +726,8 @@ fun TacticalDashboard(
                             val sData = vitals.fleet_status[symbol] ?: emptyMap<String, Any>()
                             val signal = sData["signal"] as? String ?: "HOLD"
                             val conf = (sData["conf"] as? Number)?.toDouble() ?: 0.0
+                            val rsi = (sData["rsi"] as? Number)?.toDouble() ?: 50.0
+                            val adx = (sData["adx"] as? Number)?.toDouble() ?: 0.0
                             
                             val chipColor = when(signal) {
                                 "BUY" -> NeonGreen
@@ -742,7 +744,7 @@ fun TacticalDashboard(
                             Card(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(60.dp)
+                                    .height(105.dp) // [UPGRADE] Expanded for Gauges
                                     .border(1.dp, chipColor.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
                                     .clickable {
                                         symbolToClose = symbol
@@ -751,16 +753,22 @@ fun TacticalDashboard(
                                 colors = CardDefaults.cardColors(containerColor = CardBg)
                             ) {
                                 Column(
-                                    modifier = Modifier.fillMaxSize().padding(4.dp),
+                                    modifier = Modifier.fillMaxSize().padding(6.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
+                                    verticalArrangement = Arrangement.Top
                                 ) {
                                     Text(symbol, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(icon, fontSize = 12.sp)
+                                        Text(icon, fontSize = 11.sp)
                                         Spacer(Modifier.width(4.dp))
-                                        Text("${(conf * 100).toInt()}%", color = chipColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                        Text("${(conf * 100).toInt()}%", color = chipColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                     }
+                                    
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    
+                                    // [GAUGES] Mini Indicator Suite
+                                    MiniGauge("RSI", rsi, 100.0, if(rsi < 35 || rsi > 65) chipColor else Color.Gray)
+                                    MiniGauge("ADX", adx, 50.0, if(adx > 25) NeonBlue else Color.Gray)
                                 }
                             }
                         }
@@ -1046,6 +1054,23 @@ fun FlightGauge(title: String, value: Double, max: Double, color: Color, label: 
             color = color,
             trackColor = BarBg,
             modifier = Modifier.fillMaxWidth().height(6.dp),
+            strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
+        )
+    }
+}
+
+@Composable
+fun MiniGauge(title: String, value: Double, max: Double, color: Color) {
+    Column(modifier = Modifier.padding(vertical = 2.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(title, color = TextDim, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+            Text(String.format("%.0f", value), color = Color.White, fontSize = 8.sp)
+        }
+        LinearProgressIndicator(
+            progress = (value / max).toFloat().coerceIn(0f, 1f),
+            color = color,
+            trackColor = BarBg,
+            modifier = Modifier.fillMaxWidth().height(3.dp),
             strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
         )
     }

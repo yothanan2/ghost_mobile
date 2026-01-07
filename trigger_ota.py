@@ -20,11 +20,15 @@ def trigger_update():
 
     # 2. Define Update Payload
     update_data = {
-        "code": 42,
-        "name": "2.22",
-        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v2.22/Ghost_v2.22_Release.apk",
-        "changelog": "v2.22 GHOST SPIRIT PATCH:\n- UI Cleanup: God Mode Removed\n- Readability: White text on command buttons\n- Ghost Pulse: Haptic feedback on tap\n- Visual History: Win/Loss icons (✅/❌)\n- Screen Mastery: Keep Screen On + Brightness Slider\n- OLED Protector: Auto-dimming on idle\n- Full Thai Translation update",
+        "code": 44,
+        "name": "4.01",
+        "url": "https://github.com/yothanan2/ghost_mobile/releases/download/v4.01/Ghost_v4.01_Release.apk",
+        "changelog": "🔹 PROTCOL 4.01: FLEET GAUGES ONLINE\n- Mini-Gauges (RSI/ADX) in Fleet Rig\n- Gold Integration in Fleet\n- Tactical Telemetry Enrichment",
         "mandatory": False,
+        "changelog_map": {
+            "en": "🔹 FLEET GAUGES ONLINE\n- Mini-Gauges (RSI/ADX) in Fleet Rig\n- Gold Integration in Fleet",
+            "th": "🔹 ระบบเกจย่อยใน FLEET RIG\n- แสดงเกจ RSI/ADX สำหรับคู่เงินย่อย\n- รวมทองคำ (GOLD) ในระบบฟลีท"
+        },
         "timestamp": {".sv": "timestamp"}
     }
 
